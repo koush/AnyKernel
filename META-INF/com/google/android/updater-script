@@ -1,4 +1,4 @@
-ui_print("One size fits all kernel updater: Written by Koush.");
+ui_print("AnyKernel Updater by Koush.");
 ui_print("Extracting System Files...");
 set_progress(1.000000);
 mount("MTD", "system", "/system");
@@ -12,6 +12,6 @@ set_perm(0, 0, 0777, "/tmp/mkbootimg");
 set_perm(0, 0, 0777, "/tmp/unpackbootimg");
 run_program("/tmp/dump_image", "boot", "/tmp/boot.img");
 run_program("/tmp/unpackbootimg", "/tmp/boot.img", "/tmp/");
-run_program("/tmp/mkbootimg", "--kernel", "/tmp/zImage", "--ramdisk", "/tmp/boot.img-ramdisk.img", "--cmdline", "console=ttyS2,115200n8 rw mem=244M@0x80C00000 init=/init ip=off brdrev=P3A_CDMA mtdparts=omap2-nand.0:640k@128k(mbm),384k@1408k(cdt),384k@3328k(lbl),384k@6272k(misc),3584k(boot),4608k(recovery),143744k(system),94848k(cache),268032k(userdata),2m(kpanic)", "--base", "0x10000000", "--output", "/tmp/newboot.img");
+run_program("sh", "-c", "/tmp/mkbootimg --kernel /tmp/zImage --ramdisk /tmp/boot.img-ramdisk.gz --cmdline $(cat /tmp/boot.img-cmdline) --base $(cat /tmp/boot.img-base) --output /tmp/newboot.img");
 write_raw_image("/tmp/newboot.img", "boot");
 ui_print("Done!");

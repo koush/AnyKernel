@@ -16,6 +16,4 @@ run_program("/tmp/dump_image", "boot", "/tmp/boot.img");
 run_program("/tmp/unpackbootimg", "/tmp/boot.img", "/tmp/");
 run_program("/tmp/mkbootimg.sh");
 write_raw_image("/tmp/newboot.img", "boot");
-ui_print("Changing device name...");
-run_program("/tmp/change_device.sh");
 ui_print("Done!");

@@ -12,7 +12,7 @@ set_perm(0, 0, 0777, "/tmp/mkbootimg.sh");
 set_perm(0, 0, 0777, "/tmp/mkbootimg");
 set_perm(0, 0, 0777, "/tmp/unpackbootimg");
 run_program("/tmp/dump_image", "boot", "/tmp/boot.img");
-run_program("/tmp/unpackbootimg", "-i", "/tmp/boot.img", "-o", "/tmp/");
+run_program("/tmp/unpackbootimg", "/tmp/boot.img", "/tmp/");
 run_program("/tmp/mkbootimg.sh");
 write_raw_image("/tmp/newboot.img", "boot");
 ui_print("Done!");

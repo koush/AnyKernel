@@ -1,0 +1,55 @@
+AnyKernel 2.0 - CWM Zip Template for Kernel Releases with Ramdisk Modifications
+by osm0sis @ xda-developers
+
+"AnyKernel is a template for an update.zip that can apply any kernel to any ROM, regardless of ramdisk." - Koush
+
+AnyKernel 2.0 pushes the format even further by allowing kernel developers to modify the underlying ramdisk for kernel feature support easily using a number of included command methods along with properties and variables.
+
+A working script based on DirtyV Kernel for Galaxy Nexus (tuna) is included for reference.
+
+// Properties / Variables
+
+kernel.string=KernelName by YourName @ xda-developers
+do.initd=1
+do.devicecheck=1
+do.cleanup=1
+device.name1=maguro
+device.name2=toro
+device.name3=toroplus
+block=/dev/block/platform/omap/omap_hsmmc.0/by-name/boot;
+
+do.initd=1 will create the init.d directory in /system/etc/init.d/ and apply 755 permissions.
+
+do.devicecheck=1 specified requires at least device.name1 to be present. This should match ro.product.device or ro.build.product for your device.
+
+do.cleanup=0 will keep the zip from removing it's working directory in /tmp/anykernel - this can be useful if trying to debug in adb shell whether the patches worked correctly. 
+
+// Command Methods
+
+dump_boot
+backup_file <file>
+replace_string <file> <if search string> <original string> <replacement string>
+insert_line <file> <if search string> <line before string> <inserted line>
+replace_line <file> <line replace string> <replacement line>
+prepend_file <file> <if search string> <patch file>
+append_file <file> <if search string> <patch file>
+replace_file <file> <permissions> <patch file>
+write_boot
+
+"if search string" is the string it looks for to decide whether it needs to add the tweak or not, so generally something to indicate the tweak already exists.
+
+Similarly, "line before string" and "line replace string" are the search strings that locate where the modification needs to be made for those commands.
+
+// Instructions
+
+1- Place zImage in the in the root
+2- Place any required ramdisk files in /ramdisk
+3- Place any required patch files (partial files which go with commands) in /patch
+4- Modify the anykernel.sh to add your kernel's name, boot partition location, and methods for any required ramdisk modifications.
+5- zip -r9 your.zip *
+
+Not required, but any tweaks you can't hardcode into the source should be added with a bootscript.sh like is done in the example provided.
+
+
+Have fun!
+

@@ -42,10 +42,10 @@ Similarly, "line before string" and "line replace string" are the search strings
 
 // Instructions
 
-1- Place zImage in the in the root
+1- Place zImage in the root
 2- Place any required ramdisk files in /ramdisk
-3- Place any required patch files (partial files which go with commands) in /patch
-4- Modify the anykernel.sh to add your kernel's name, boot partition location, and methods for any required ramdisk modifications.
+3- Place any required patch files (generally partial files which go with commands) in /patch
+4- Modify the anykernel.sh to add your kernel's name, boot partition location, permissions for included ramdisk files, and use methods for any required ramdisk modifications.
 5- zip -r9 your.zip *
 
 Not required, but any tweaks you can't hardcode into the source should be added with a bootscript.sh like is done in the example provided.

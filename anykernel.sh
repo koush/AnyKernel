@@ -25,8 +25,7 @@ split_img=/tmp/anykernel/split_img;
 patch=/tmp/anykernel/patch;
 
 cd $ramdisk;
-chmod -R 644 $ramdisk
-chmod -R 755 $bin $ramdisk/sbin;
+chmod -R 755 $bin;
 mkdir -p $split_img;
 
 # dump boot and extract ramdisk
@@ -95,6 +94,12 @@ replace_file() {
 }
 
 ## end methods
+
+
+## AnyKernel permissions
+# set permissions for included files
+chmod -R 755 $ramdisk
+chmod 644 $ramdisk/sbin/media_profiles.xml
 
 
 ## AnyKernel install

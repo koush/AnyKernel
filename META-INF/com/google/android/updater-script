@@ -1,14 +1,14 @@
 show_progress(1.34, 4);
-ui_print("");
+ui_print(" ");
 assert(package_extract_dir("", "/tmp/anykernel"));
 ui_print(file_getprop("/tmp/anykernel/anykernel.sh", "kernel.string"));
-ui_print("");
-ui_print("AnyKernel Script by osm0sis @ xda-developers");
-ui_print("");
+ui_print(" ");
+ui_print("AnyKernel2 by osm0sis @ xda-developers");
+ui_print(" ");
 run_program("/sbin/busybox", "mount", "/system");
 ifelse(file_getprop("/tmp/anykernel/anykernel.sh", "do.devicecheck") == 1,
   (ui_print("Checking device...");
-   ui_print("");
+   ui_print(" ");
    assert(getprop("ro.product.device") == file_getprop("/tmp/anykernel/anykernel.sh", "device.name1") || getprop("ro.build.product") == file_getprop("/tmp/anykernel/anykernel.sh", "device.name1") ||
           getprop("ro.product.device") == file_getprop("/tmp/anykernel/anykernel.sh", "device.name2") || getprop("ro.build.product") == file_getprop("/tmp/anykernel/anykernel.sh", "device.name2") ||
           getprop("ro.product.device") == file_getprop("/tmp/anykernel/anykernel.sh", "device.name3") || getprop("ro.build.product") == file_getprop("/tmp/anykernel/anykernel.sh", "device.name3"));
@@ -16,18 +16,18 @@ ifelse(file_getprop("/tmp/anykernel/anykernel.sh", "do.devicecheck") == 1,
 );
 ifelse(file_getprop("/tmp/anykernel/anykernel.sh", "do.initd") == 1,
   (ui_print("Creating init.d...");
-   ui_print("");
+   ui_print(" ");
    run_program("/sbin/sh", "-c", "mkdir /system/etc/init.d");
    set_perm_recursive(0, 0, 0755, 0755, "/system/etc/init.d");
   )
 );
-unmount("/system");
 ui_print("Installing kernel...");
 assert(run_program("/sbin/sh", "/tmp/anykernel/anykernel.sh"));
 ifelse(file_getprop("/tmp/anykernel/anykernel.sh", "do.cleanup") == 1,
   (delete_recursive("/tmp/anykernel");
   )
 );
-ui_print("");
+unmount("/system");
+ui_print(" ");
 ui_print("Done!");
 

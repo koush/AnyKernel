@@ -23,6 +23,13 @@ ifelse(file_getprop("/tmp/anykernel/anykernel.sh", "do.initd") == 1,
 );
 ui_print("Installing kernel...");
 assert(run_program("/sbin/sh", "/tmp/anykernel/anykernel.sh"));
+ifelse(file_getprop("/tmp/anykernel/anykernel.sh", "do.modules") == 1,
+  (ui_print("Pushing modules...");
+   ui_print(" ");
+   assert(package_extract_dir("modules", "/system/lib/modules"),
+          set_perm_recursive(0, 0, 0755, 0644, "/system/lib/modules"));
+  )
+);
 ifelse(file_getprop("/tmp/anykernel/anykernel.sh", "do.cleanup") == 1,
   (delete_recursive("/tmp/anykernel");
   )

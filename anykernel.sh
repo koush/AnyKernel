@@ -4,8 +4,9 @@
 ## AnyKernel setup
 # EDIFY properties
 kernel.string=DirtyV by bsmitty83 @ xda-developers
-do.initd=1
 do.devicecheck=1
+do.initd=1
+do.modules=0
 do.cleanup=1
 device.name1=maguro
 device.name2=toro
@@ -56,7 +57,7 @@ write_boot() {
     dtb="--dt $split_img/$dtb";
   fi;
   cd $ramdisk;
-  find . | cpio -o -H newc | gzip > /tmp/anykernel/ramdisk-new.cpio.gz;
+  find . | cpio -H newc -o | gzip > /tmp/anykernel/ramdisk-new.cpio.gz;
   $bin/mkbootimg --kernel /tmp/anykernel/zImage --ramdisk /tmp/anykernel/ramdisk-new.cpio.gz $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset $tagsoff $dtb --output /tmp/anykernel/boot-new.img;
   dd if=/tmp/anykernel/boot-new.img of=$block;
 }
@@ -71,11 +72,15 @@ replace_string() {
   fi;
 }
 
-# insert_line <file> <if search string> <line before string> <inserted line>
+# insert_line <file> <if search string> <before/after> <line match string> <inserted line>
 insert_line() {
   if [ -z "$(grep "$2" $1)" ]; then
-    line=$((`grep -n "$3" $1 | cut -d: -f1` + 1));
-    sed -i $line"s;^;${4};" $1;
+    case $3 in
+      before) offset=0;;
+      after) offset=1;;
+    esac;
+    line=$((`grep -n "$4" $1 | cut -d: -f1` + offset));
+    sed -i "${line}s;^;${5};" $1;
   fi;
 }
 
@@ -83,7 +88,15 @@ insert_line() {
 replace_line() {
   if [ ! -z "$(grep "$2" $1)" ]; then
     line=`grep -n "$2" $1 | cut -d: -f1`;
-    sed -i $line"s;.*;${3};" $1;
+    sed -i "${line}s;.*;${3};" $1;
+  fi;
+}
+
+# remove_line <file> <line match string>
+remove_line() {
+  if [ ! -z "$(grep "$2" $1)" ]; then
+    line=`grep -n "$2" $1 | cut -d: -f1`;
+    sed -i "${line}d" $1;
   fi;
 }
 
@@ -130,7 +143,7 @@ append_file init.rc "run-parts" init;
 
 # init.tuna.rc
 backup_file init.tuna.rc;
-insert_line init.tuna.rc "nodiratime barrier=0" "mount_all /fstab.tuna" "\tmount ext4 /dev/block/platform/omap/omap_hsmmc.0/by-name/userdata /data remount nosuid nodev noatime nodiratime barrier=0\n";
+insert_line init.tuna.rc "nodiratime barrier=0" after "mount_all /fstab.tuna" "\tmount ext4 /dev/block/platform/omap/omap_hsmmc.0/by-name/userdata /data remount nosuid nodev noatime nodiratime barrier=0\n";
 append_file init.tuna.rc "dvbootscript" init.tuna;
 
 # init.superuser.rc
@@ -140,7 +153,7 @@ if [ -f init.superuser.rc ]; then
   prepend_file init.superuser.rc "SuperSU daemonsu" init.superuser;
 else
   replace_file init.superuser.rc 750 init.superuser.rc;
-  insert_line init.rc "init.superuser.rc" "on post-fs-data" "    import /init.superuser.rc\n\n";
+  insert_line init.rc "init.superuser.rc" after "on post-fs-data" "    import /init.superuser.rc\n";
 fi;
 
 # fstab.tuna

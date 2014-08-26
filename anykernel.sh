@@ -29,10 +29,17 @@ cd $ramdisk;
 chmod -R 755 $bin;
 mkdir -p $split_img;
 
+OUTFD=`ps | grep -v "grep" | grep -oE "update(.*)" | cut -d" " -f3`;
+ui_print() { echo "ui_print $1" >&$OUTFD; echo "ui_print" >&$OUTFD; }
+
 # dump boot and extract ramdisk
 dump_boot() {
   dd if=$block of=/tmp/anykernel/boot.img;
   $bin/unpackbootimg -i /tmp/anykernel/boot.img -o $split_img;
+  if [ $? != 0 ]; then
+    ui_print " "; ui_print "Dumping/unpacking image failed. Aborting...";
+    echo 1 > /tmp/anykernel/exitcode; exit;
+  fi;
   gunzip -c $split_img/boot.img-ramdisk.gz | cpio -i;
 }
 
@@ -59,6 +66,10 @@ write_boot() {
   cd $ramdisk;
   find . | cpio -H newc -o | gzip > /tmp/anykernel/ramdisk-new.cpio.gz;
   $bin/mkbootimg --kernel /tmp/anykernel/zImage --ramdisk /tmp/anykernel/ramdisk-new.cpio.gz $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset $tagsoff $dtb --output /tmp/anykernel/boot-new.img;
+  if [ $? != 0 -o `wc -c < /tmp/anykernel/boot-new.img` -gt `wc -c < /tmp/anykernel/boot.img` ]; then
+    ui_print " "; ui_print "Repacking image failed. Aborting...";
+    echo 1 > /tmp/anykernel/exitcode; exit;
+  fi;
   dd if=/tmp/anykernel/boot-new.img of=$block;
 }
 

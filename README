@@ -46,6 +46,8 @@ Similarly, "line match string" and "line replace string" are the search strings 
 
 "before/after" requires you simply specify "before" or "after" for the placement of the inserted line, in relation to "line match string".
 
+You may also use ui_print "<text>" to write messages back to the recovery during the modification process.
+
 // Instructions
 
 1- Place zImage in the root

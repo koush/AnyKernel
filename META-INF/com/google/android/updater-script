@@ -22,7 +22,12 @@ ifelse(file_getprop("/tmp/anykernel/anykernel.sh", "do.initd") == 1,
   )
 );
 ui_print("Installing kernel...");
-assert(run_program("/sbin/sh", "/tmp/anykernel/anykernel.sh"));
+run_program("/sbin/sh", "/tmp/anykernel/anykernel.sh");
+ifelse(run_program("/sbin/sh", "-c", "test `cat /tmp/anykernel/exitcode` == 1") == 0, 
+  (unmount("/system");
+   abort();
+  )
+);
 ifelse(file_getprop("/tmp/anykernel/anykernel.sh", "do.modules") == 1,
   (ui_print("Pushing modules...");
    ui_print(" ");

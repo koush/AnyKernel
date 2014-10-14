@@ -11,6 +11,8 @@ do.cleanup=1
 device.name1=maguro
 device.name2=toro
 device.name3=toroplus
+device.name4=
+device.name5=
 
 # shell variables
 block=/dev/block/platform/omap/omap_hsmmc.0/by-name/boot;
@@ -25,9 +27,9 @@ bin=/tmp/anykernel/tools;
 split_img=/tmp/anykernel/split_img;
 patch=/tmp/anykernel/patch;
 
-cd $ramdisk;
 chmod -R 755 $bin;
-mkdir -p $split_img;
+mkdir -p $ramdisk $split_img;
+cd $ramdisk;
 
 OUTFD=`ps | grep -v "grep" | grep -oE "update(.*)" | cut -d" " -f3`;
 ui_print() { echo "ui_print $1" >&$OUTFD; echo "ui_print" >&$OUTFD; }
@@ -59,7 +61,9 @@ write_boot() {
     secondoff=`cat *-secondoff`;
     secondoff="--second_offset $secondoff";
   fi;
-  if [ -f *-dtb ]; then
+  if [ -f /tmp/anykernel/dtb ]; then
+    dtb="--dt /tmp/anykernel/dtb";
+  elif [ -f *-dtb ]; then
     dtb=`ls *-dtb`;
     dtb="--dt $split_img/$dtb";
   fi;

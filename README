@@ -19,7 +19,7 @@ device.name2=toro
 device.name3=toroplus
 block=/dev/block/platform/omap/omap_hsmmc.0/by-name/boot;
 
-do.devicecheck=1 specified requires at least device.name1 to be present. This should match ro.product.device or ro.build.product for your device.
+do.devicecheck=1 specified requires at least device.name1 to be present. This should match ro.product.device or ro.build.product for your device. There is support for up to 5 device.name# properties.
 
 do.initd=1 will create the init.d directory in /system/etc/init.d/ and apply 755 permissions.
 
@@ -50,7 +50,7 @@ You may also use ui_print "<text>" to write messages back to the recovery during
 
 // Instructions
 
-1- Place zImage in the root
+1- Place zImage in the root (dtb should also go here for devices that require a custom one)
 2- Place any required ramdisk files in /ramdisk
 3- Place any required patch files (generally partial files which go with commands) in /patch
 4- Modify the anykernel.sh to add your kernel's name, boot partition location, permissions for included ramdisk files, and use methods for any required ramdisk modifications

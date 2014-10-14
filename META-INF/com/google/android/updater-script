@@ -11,7 +11,9 @@ ifelse(file_getprop("/tmp/anykernel/anykernel.sh", "do.devicecheck") == 1,
    ui_print(" ");
    assert(getprop("ro.product.device") == file_getprop("/tmp/anykernel/anykernel.sh", "device.name1") || getprop("ro.build.product") == file_getprop("/tmp/anykernel/anykernel.sh", "device.name1") ||
           getprop("ro.product.device") == file_getprop("/tmp/anykernel/anykernel.sh", "device.name2") || getprop("ro.build.product") == file_getprop("/tmp/anykernel/anykernel.sh", "device.name2") ||
-          getprop("ro.product.device") == file_getprop("/tmp/anykernel/anykernel.sh", "device.name3") || getprop("ro.build.product") == file_getprop("/tmp/anykernel/anykernel.sh", "device.name3"));
+          getprop("ro.product.device") == file_getprop("/tmp/anykernel/anykernel.sh", "device.name3") || getprop("ro.build.product") == file_getprop("/tmp/anykernel/anykernel.sh", "device.name3") ||
+          getprop("ro.product.device") == file_getprop("/tmp/anykernel/anykernel.sh", "device.name4") || getprop("ro.build.product") == file_getprop("/tmp/anykernel/anykernel.sh", "device.name4") ||
+          getprop("ro.product.device") == file_getprop("/tmp/anykernel/anykernel.sh", "device.name5") || getprop("ro.build.product") == file_getprop("/tmp/anykernel/anykernel.sh", "device.name5"));
   )
 );
 ifelse(file_getprop("/tmp/anykernel/anykernel.sh", "do.initd") == 1,

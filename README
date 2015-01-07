@@ -3,7 +3,7 @@ by osm0sis @ xda-developers
 
 "AnyKernel is a template for an update.zip that can apply any kernel to any ROM, regardless of ramdisk." - Koush
 
-AnyKernel 2.0 pushes the format even further by allowing kernel developers to modify the underlying ramdisk for kernel feature support easily using a number of included command methods along with properties and variables.
+AnyKernel2 pushes the format even further by allowing kernel developers to modify the underlying ramdisk for kernel feature support easily using a number of included command methods along with properties and variables.
 
 A working script based on DirtyV Kernel for Galaxy Nexus (tuna) is included for reference.
 
@@ -50,7 +50,7 @@ You may also use ui_print "<text>" to write messages back to the recovery during
 
 // Instructions
 
-1- Place zImage in the root (dtb should also go here for devices that require a custom one)
+1- Place zImage in the root (dtb should also go here for devices that require a custom one, both will fallback to the original if not included)
 2- Place any required ramdisk files in /ramdisk
 3- Place any required patch files (generally partial files which go with commands) in /patch
 4- Modify the anykernel.sh to add your kernel's name, boot partition location, permissions for included ramdisk files, and use methods for any required ramdisk modifications

@@ -61,6 +61,12 @@ write_boot() {
     secondoff=`cat *-secondoff`;
     secondoff="--second_offset $secondoff";
   fi;
+  if [ -f /tmp/anykernel/zImage ]; then
+    kernel=/tmp/anykernel/zImage;
+  else
+    kernel=`ls *-zImage`;
+    kernel=$split_img/$kernel;
+  fi;
   if [ -f /tmp/anykernel/dtb ]; then
     dtb="--dt /tmp/anykernel/dtb";
   elif [ -f *-dtb ]; then
@@ -69,7 +75,7 @@ write_boot() {
   fi;
   cd $ramdisk;
   find . | cpio -H newc -o | gzip > /tmp/anykernel/ramdisk-new.cpio.gz;
-  $bin/mkbootimg --kernel /tmp/anykernel/zImage --ramdisk /tmp/anykernel/ramdisk-new.cpio.gz $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset $tagsoff $dtb --output /tmp/anykernel/boot-new.img;
+  $bin/mkbootimg --kernel $kernel --ramdisk /tmp/anykernel/ramdisk-new.cpio.gz $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset $tagsoff $dtb --output /tmp/anykernel/boot-new.img;
   if [ $? != 0 -o `wc -c < /tmp/anykernel/boot-new.img` -gt `wc -c < /tmp/anykernel/boot.img` ]; then
     ui_print " "; ui_print "Repacking image failed. Aborting...";
     echo 1 > /tmp/anykernel/exitcode; exit;

@@ -1,4 +1,4 @@
-# AnyKernel 2.0 Ramdisk Mod Script 
+# AnyKernel2 Ramdisk Mod Script
 # osm0sis @ xda-developers
 
 ## AnyKernel setup
@@ -29,20 +29,25 @@ patch=/tmp/anykernel/patch;
 
 chmod -R 755 $bin;
 mkdir -p $ramdisk $split_img;
-cd $ramdisk;
 
-OUTFD=`ps | grep -v "grep" | grep -oE "update(.*)" | cut -d" " -f3`;
-ui_print() { echo "ui_print $1" >&$OUTFD; echo "ui_print" >&$OUTFD; }
+OUTFD=/proc/self/fd/$1;
+ui_print() { echo -e "ui_print $1\nui_print" > $OUTFD; }
 
 # dump boot and extract ramdisk
 dump_boot() {
   dd if=$block of=/tmp/anykernel/boot.img;
   $bin/unpackbootimg -i /tmp/anykernel/boot.img -o $split_img;
   if [ $? != 0 ]; then
-    ui_print " "; ui_print "Dumping/unpacking image failed. Aborting...";
-    echo 1 > /tmp/anykernel/exitcode; exit;
+    ui_print " "; ui_print "Dumping/splitting image failed. Aborting..."; exit 1;
   fi;
+  mv -f $ramdisk /tmp/anykernel/rdtmp;
+  mkdir -p $ramdisk;
+  cd $ramdisk;
   gunzip -c $split_img/boot.img-ramdisk.gz | cpio -i;
+  if [ $? != 0 -o -z "$(ls $ramdisk)" ]; then
+    ui_print " "; ui_print "Unpacking ramdisk failed. Aborting..."; exit 1;
+  fi;
+  cp -af /tmp/anykernel/rdtmp/* $ramdisk;
 }
 
 # repack ramdisk then build and write image
@@ -75,10 +80,14 @@ write_boot() {
   fi;
   cd $ramdisk;
   find . | cpio -H newc -o | gzip > /tmp/anykernel/ramdisk-new.cpio.gz;
+  if [ $? != 0 ]; then
+    ui_print " "; ui_print "Repacking ramdisk failed. Aborting..."; exit 1;
+  fi;
   $bin/mkbootimg --kernel $kernel --ramdisk /tmp/anykernel/ramdisk-new.cpio.gz $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset $tagsoff $dtb --output /tmp/anykernel/boot-new.img;
-  if [ $? != 0 -o `wc -c < /tmp/anykernel/boot-new.img` -gt `wc -c < /tmp/anykernel/boot.img` ]; then
-    ui_print " "; ui_print "Repacking image failed. Aborting...";
-    echo 1 > /tmp/anykernel/exitcode; exit;
+  if [ $? != 0 ]; then
+    ui_print " "; ui_print "Repacking image failed. Aborting..."; exit 1;
+  elif [ `wc -c < /tmp/anykernel/boot-new.img` -gt `wc -c < /tmp/anykernel/boot.img` ]; then
+    ui_print " "; ui_print "New image larger than boot partition. Aborting..."; exit 1;
   fi;
   dd if=/tmp/anykernel/boot-new.img of=$block;
 }
@@ -93,7 +102,7 @@ replace_string() {
   fi;
 }
 
-# insert_line <file> <if search string> <before/after> <line match string> <inserted line>
+# insert_line <file> <if search string> <before|after> <line match string> <inserted line>
 insert_line() {
   if [ -z "$(grep "$2" $1)" ]; then
     case $3 in
@@ -101,7 +110,7 @@ insert_line() {
       after) offset=1;;
     esac;
     line=$((`grep -n "$4" $1 | cut -d: -f1` + offset));
-    sed -i "${line}s;^;${5};" $1;
+    sed -i "${line}s;^;${5}\n;" $1;
   fi;
 }
 
@@ -128,6 +137,19 @@ prepend_file() {
   fi;
 }
 
+# insert_file <file> <if search string> <before|after> <line match string> <patch file>
+insert_file() {
+  if [ -z "$(grep "$2" $1)" ]; then
+    case $3 in
+      before) offset=0;;
+      after) offset=1;;
+    esac;
+    line=$((`grep -n "$4" $1 | cut -d: -f1` + offset));
+    sed -i "${line}s;^;\n;" $1;
+    sed -i "$((line - 1))r $patch/$5" $1;
+  fi;
+}
+
 # append_file <file> <if search string> <patch file>
 append_file() {
   if [ -z "$(grep "$2" $1)" ]; then
@@ -139,8 +161,24 @@ append_file() {
 
 # replace_file <file> <permissions> <patch file>
 replace_file() {
-  cp -fp $patch/$3 $1;
+  cp -pf $patch/$3 $1;
   chmod $2 $1;
+}
+
+# patch_fstab <fstab file> <mount match name> <fs match type> <block|mount|fstype|options|flags> <if search string> <replacement string>
+patch_fstab() {
+  entry=$(grep "$2" $1 | grep "$3");
+  if [ -z "$(echo "$entry" | grep "$5")" ]; then
+    case $4 in
+      block) part=$(echo "$entry" | awk '{ print $1 }');;
+      mount) part=$(echo "$entry" | awk '{ print $2 }');;
+      fstype) part=$(echo "$entry" | awk '{ print $3 }');;
+      options) part=$(echo "$entry" | awk '{ print $4 }');;
+      flags) part=$(echo "$entry" | awk '{ print $5 }');;
+    esac;
+    newentry=${entry//$part/$6};
+    sed -i "s;${entry};${newentry};" $1;
+  fi;
 }
 
 ## end methods
@@ -164,7 +202,7 @@ append_file init.rc "run-parts" init;
 
 # init.tuna.rc
 backup_file init.tuna.rc;
-insert_line init.tuna.rc "nodiratime barrier=0" after "mount_all /fstab.tuna" "\tmount ext4 /dev/block/platform/omap/omap_hsmmc.0/by-name/userdata /data remount nosuid nodev noatime nodiratime barrier=0\n";
+insert_line init.tuna.rc "nodiratime barrier=0" after "mount_all /fstab.tuna" "\tmount ext4 /dev/block/platform/omap/omap_hsmmc.0/by-name/userdata /data remount nosuid nodev noatime nodiratime barrier=0";
 append_file init.tuna.rc "dvbootscript" init.tuna;
 
 # init.superuser.rc
@@ -174,14 +212,14 @@ if [ -f init.superuser.rc ]; then
   prepend_file init.superuser.rc "SuperSU daemonsu" init.superuser;
 else
   replace_file init.superuser.rc 750 init.superuser.rc;
-  insert_line init.rc "init.superuser.rc" after "on post-fs-data" "    import /init.superuser.rc\n";
+  insert_line init.rc "init.superuser.rc" after "on post-fs-data" "    import /init.superuser.rc";
 fi;
 
 # fstab.tuna
 backup_file fstab.tuna;
-replace_line fstab.tuna "/by-name/system" "/dev/block/platform/omap/omap_hsmmc.0/by-name/system    /system             ext4      nodev,noatime,nodiratime,barrier=0,data=writeback,noauto_da_alloc,discard    wait";
-replace_line fstab.tuna "/by-name/cache" "/dev/block/platform/omap/omap_hsmmc.0/by-name/cache     /cache              ext4      nosuid,nodev,noatime,nodiratime,errors=panic,barrier=0,nomblk_io_submit,data=writeback,noauto_da_alloc    wait,check";
-replace_line fstab.tuna "/by-name/userdata" "/dev/block/platform/omap/omap_hsmmc.0/by-name/userdata  /data               ext4      nosuid,nodev,noatime,errors=panic,nomblk_io_submit,data=writeback,noauto_da_alloc    wait,check,encryptable=/dev/block/platform/omap/omap_hsmmc.0/by-name/metadata";
+patch_fstab fstab.tuna /system ext4 options "nodiratime,barrier=0" "nodev,noatime,nodiratime,barrier=0,data=writeback,noauto_da_alloc,discard";
+patch_fstab fstab.tuna /cache ext4 options "barrier=0,nomblk_io_submit" "nosuid,nodev,noatime,nodiratime,errors=panic,barrier=0,nomblk_io_submit,data=writeback,noauto_da_alloc";
+patch_fstab fstab.tuna /userdata ext4 options "nomblk_io_submit,data=writeback" "nosuid,nodev,noatime,errors=panic,nomblk_io_submit,data=writeback,noauto_da_alloc";
 append_file fstab.tuna "usbdisk" fstab;
 
 # end ramdisk changes

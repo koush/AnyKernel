@@ -60,8 +60,8 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.initd)" == 1 ]; then
 fi;
 
 ui_print "Installing kernel...";
-/sbin/sh /tmp/anykernel/anykernel.sh;
-if [ "$(cat /tmp/anykernel/exitcode)" == 1 ]; then 
+/sbin/sh /tmp/anykernel/anykernel.sh $2;
+if [ $? != "0" ]; then
   umount /system;
   abort;
 fi;

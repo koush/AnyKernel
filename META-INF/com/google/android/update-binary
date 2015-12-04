@@ -30,22 +30,26 @@ ui_print " ";
 mkdir -p /tmp/anykernel;
 cd /tmp/anykernel;
 unzip -o "$ZIP";
+if [ $? != 0 -o -z "$(ls /tmp/anykernel)" ]; then
+  abort "Unzip failed. Aborting...";
+fi;
 
 ui_print "$(file_getprop /tmp/anykernel/anykernel.sh kernel.string)";
 ui_print " ";
 ui_print "AnyKernel2 by osm0sis @ xda-developers";
 ui_print " ";
-/sbin/busybox mount /system;
+/sbin/busybox mount -o ro /system;
 
 if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.devicecheck)" == 1 ]; then
   ui_print "Checking device...";
-  ui_print " ";
   for i in 1 2 3 4 5; do
     testname="$(file_getprop /tmp/anykernel/anykernel.sh device.name$i)";
     if [ "$(getprop ro.product.device)" == "$testname" -o "$(getprop ro.build.product)" == "$testname" ]; then
+      ui_print "$testname";
       match=1;
     fi;
   done;
+  ui_print " ";
   if [ "$match" != 1 ]; then
     umount /system;
     abort "Unsupported device. Aborting...";
@@ -55,8 +59,10 @@ fi;
 if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.initd)" == 1 ]; then
   ui_print "Creating init.d...";
   ui_print " ";
+  /sbin/busybox mount -o remount,rw /system;
   mkdir /system/etc/init.d;
   set_perm_recursive 0 0 0755 0755 /system/etc/init.d;
+  /sbin/busybox mount -o remount,ro /system;
 fi;
 
 ui_print "Installing kernel...";
@@ -69,8 +75,10 @@ fi;
 if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.modules)" == 1 ]; then
   ui_print "Pushing modules...";
   ui_print " ";
+  /sbin/busybox mount -o remount,rw /system;
   cp -f /tmp/anykernel/modules/* /system/lib/modules/;
   set_perm_recursive 0 0 0755 0644 /system/lib/modules;
+  /sbin/busybox mount -o remount,ro /system;
 fi;
 
 if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.cleanup)" == 1 ]; then

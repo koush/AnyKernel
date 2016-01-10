@@ -32,6 +32,7 @@ do.cleanup=0 will keep the zip from removing it's working directory in /tmp/anyk
 dump_boot
 backup_file <file>
 replace_string <file> <if search string> <original string> <replacement string>
+replace_section <file> <begin search string> <end search string> <replacement string>
 insert_line <file> <if search string> <before|after> <line match string> <inserted line>
 replace_line <file> <line replace string> <replacement line>
 remove_line <file> <line match string>
@@ -39,12 +40,12 @@ prepend_file <file> <if search string> <patch file>
 insert_file <file> <if search string> <before|after> <line match string> <patch file>
 append_file <file> <if search string> <patch file>
 replace_file <file> <permissions> <patch file>
-patch_fstab <fstab file> <mount match name> <fs match type> <block|mount|fstype|options|flags> <if search string> <replacement string>
+patch_fstab <fstab file> <mount match name> <fs match type> <block|mount|fstype|options|flags> <original string> <replacement string>
 write_boot
 
 "if search string" is the string it looks for to decide whether it needs to add the tweak or not, so generally something to indicate the tweak already exists.
 
-Similarly, "line match string" and "line replace string" are the search strings that locate where the modification needs to be made for those commands, and "mount match name" and "fs match type" are both required to narrow the patch_fstab command down to the correct entry.
+Similarly, "line match string" and "line replace string" are the search strings that locate where the modification needs to be made for those commands, "begin search string" and "end search string" are both required to select the first and last lines of the script block to be replaced for replace_section, and "mount match name" and "fs match type" are both required to narrow the patch_fstab command down to the correct entry.
 
 "before|after" requires you simply specify "before" or "after" for the placement of the inserted line, in relation to "line match string".
 

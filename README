@@ -33,6 +33,7 @@ dump_boot
 backup_file <file>
 replace_string <file> <if search string> <original string> <replacement string>
 replace_section <file> <begin search string> <end search string> <replacement string>
+remove_section <file> <begin search string> <end search string>
 insert_line <file> <if search string> <before|after> <line match string> <inserted line>
 replace_line <file> <line replace string> <replacement line>
 remove_line <file> <line match string>
@@ -52,6 +53,8 @@ Similarly, "line match string" and "line replace string" are the search strings 
 "block|mount|fstype|options|flags" requires you specify which part (listed in order) of the fstab entry you want to check and alter.
 
 You may also use ui_print "<text>" to write messages back to the recovery during the modification process.
+
+Note: the "begin search string" and "end search string" arguments of replace_section and remove_section require any forward slashes (/) to be escaped.
 
 // Instructions
 

@@ -115,6 +115,11 @@ replace_section() {
   sed -i "${line}s;^;${4}\n;" $1;
 }
 
+# remove_section <file> <begin search string> <end search string>
+remove_section() {
+  sed -i "/${2}/,/${3}/d" $1;
+}
+
 # insert_line <file> <if search string> <before|after> <line match string> <inserted line>
 insert_line() {
   if [ -z "$(grep "$2" $1)" ]; then

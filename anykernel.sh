@@ -194,7 +194,7 @@ patch_fstab() {
       options) part=$(echo "$entry" | awk '{ print $4 }');;
       flags) part=$(echo "$entry" | awk '{ print $5 }');;
     esac;
-    newentry=${entry//$part/$6};
+    newentry=$(echo "$entry" | sed "s;${part};${6};");
     sed -i "s;${entry};${newentry};" $1;
   fi;
 }

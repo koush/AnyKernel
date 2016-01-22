@@ -90,7 +90,7 @@ write_boot() {
     ui_print " "; ui_print "New image larger than boot partition. Aborting..."; exit 1;
   fi;
   if [ -f "/data/custom_boot_image_patch.sh" ]; then
-    sh /data/custom_boot_image_patch.sh /tmp/anykernel/boot-new.img;
+    ash /data/custom_boot_image_patch.sh /tmp/anykernel/boot-new.img;
     if [ $? != 0 ]; then
       ui_print " "; ui_print "User script execution failed. Aborting..."; exit 1;
     fi;

@@ -14,7 +14,7 @@ ui_print() {
 }
 show_progress() { echo "progress $1 $2" > $OUTFD; }
 set_perm_recursive() {
-  dirs=$(echo $* | awk '{ print substr($0, index($0,$5)) }');
+  dirs=$(echo $* | $bb awk '{ print substr($0, index($0,$5)) }');
   for i in $dirs; do
     chown -R $1.$2 $i; chown -R $1:$2 $i;
     find "$i" -type d -exec chmod $3 {} +;
@@ -33,6 +33,8 @@ unzip -o "$ZIP";
 if [ $? != 0 -o -z "$(ls /tmp/anykernel/tools)" ]; then
   abort "Unzip failed. Aborting...";
 fi;
+chmod -R 755 /tmp/anykernel/tools /tmp/anykernel/bin;
+bb=/tmp/anykernel/tools/busybox;
 
 ui_print "$(file_getprop /tmp/anykernel/anykernel.sh kernel.string)";
 ui_print " ";
@@ -66,11 +68,12 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.initd)" == 1 ]; then
 fi;
 
 ui_print "Installing kernel...";
-chmod -R 755 /tmp/anykernel/tools /tmp/anykernel/bin;
-bb=/tmp/anykernel/tools/busybox;
 for i in $($bb --list); do
   ln -s $bb /tmp/anykernel/bin/$i;
 done;
+if [ $? != 0 -o -z "$(ls /tmp/anykernel/bin)" ]; then
+  abort "Recovery busybox setup failed. Aborting...";
+fi;
 PATH="/tmp/anykernel/bin:$PATH" $bb ash /tmp/anykernel/anykernel.sh $2;
 if [ $? != "0" ]; then
   abort;

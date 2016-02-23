@@ -69,7 +69,7 @@ fi;
 
 ui_print "Installing kernel...";
 for i in $($bb --list); do
-  ln -s $bb /tmp/anykernel/bin/$i;
+  $bb ln -s $bb /tmp/anykernel/bin/$i;
 done;
 if [ $? != 0 -o -z "$(ls /tmp/anykernel/bin)" ]; then
   abort "Recovery busybox setup failed. Aborting...";

@@ -31,7 +31,12 @@ chmod -R 755 $bin;
 mkdir -p $ramdisk $split_img;
 
 OUTFD=/proc/self/fd/$1;
+
+# ui_print <text>
 ui_print() { echo -e "ui_print $1\nui_print" > $OUTFD; }
+
+# contains <string> <substring>
+contains() { test "${1#*$2}" != "$1" && return 0 || return 1; }
 
 # dump boot and extract ramdisk
 dump_boot() {
@@ -48,11 +53,6 @@ dump_boot() {
     ui_print " "; ui_print "Unpacking ramdisk failed. Aborting..."; exit 1;
   fi;
   cp -af /tmp/anykernel/rdtmp/* $ramdisk;
-}
-
-# contains <string> <substring>
-contains() {
-  if test "${1#*$2}" != "$1"; then return 0; else return 1; fi;
 }
 
 # repack ramdisk then build and write image

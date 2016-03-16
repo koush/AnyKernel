@@ -50,6 +50,11 @@ dump_boot() {
   cp -af /tmp/anykernel/rdtmp/* $ramdisk;
 }
 
+# contains <string> <substring>
+contains() {
+  if test "${1#*$2}" != "$1"; then return 0; else return 1; fi;
+}
+
 # repack ramdisk then build and write image
 write_boot() {
   cd $split_img;

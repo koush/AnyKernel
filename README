@@ -54,8 +54,6 @@ Similarly, "line match string" and "line replace string" are the search strings 
 
 You may also use ui_print "<text>" to write messages back to the recovery during the modification process, and contains "<string>" "<substring>" to simplify string testing logic you might want in your script.
 
-Note: the "begin search string" and "end search string" arguments of replace_section and remove_section require any forward slashes (/) to be escaped.
-
 // Instructions
 
 1- Place zImage in the root (dtb should also go here for devices that require a custom one, both will fallback to the original if not included)

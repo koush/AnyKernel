@@ -73,6 +73,8 @@ write_boot() {
   fi;
   if [ -f /tmp/anykernel/zImage ]; then
     kernel=/tmp/anykernel/zImage;
+  elif [ -f /tmp/anykernel/zImage-dtb ]; then
+    kernel=/tmp/anykernel/zImage-dtb;
   else
     kernel=`ls *-zImage`;
     kernel=$split_img/$kernel;

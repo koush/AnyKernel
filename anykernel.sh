@@ -121,14 +121,25 @@ replace_string() {
 
 # replace_section <file> <begin search string> <end search string> <replacement string>
 replace_section() {
-  line=`grep -n "$2" $1 | head -n1 | cut -d: -f1`;
-  sed -i "/${2//\//\\/}/,/${3//\//\\/}/d" $1;
-  sed -i "${line}s;^;${4}\n;" $1;
+  begin=`grep -n "$2" $1 | head -n1 | cut -d: -f1`;
+  for end in `grep -n "$3" $1 | cut -d: -f1`; do
+    if [ "$begin" -lt "$end" ]; then
+      sed -i "/${2//\//\\/}/,/${3//\//\\/}/d" $1;
+      sed -i "${begin}s;^;${4}\n;" $1;
+      break;
+    fi;
+  done;
 }
 
 # remove_section <file> <begin search string> <end search string>
 remove_section() {
-  sed -i "/${2//\//\\/}/,/${3//\//\\/}/d" $1;
+  begin=`grep -n "$2" $1 | head -n1 | cut -d: -f1`;
+  for end in `grep -n "$3" $1 | cut -d: -f1`; do
+    if [ "$begin" -lt "$end" ]; then
+      sed -i "/${2//\//\\/}/,/${3//\//\\/}/d" $1;
+      break;
+    fi;
+  done;
 }
 
 # insert_line <file> <if search string> <before|after> <line match string> <inserted line>

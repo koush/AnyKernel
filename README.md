@@ -1,5 +1,7 @@
+----------------------------------------------------------------------------------
 AnyKernel2 - Flashable Zip Template for Kernel Releases with Ramdisk Modifications
-by osm0sis @ xda-developers
+----------------------------------------------------------------------------------
+### by osm0sis @ xda-developers ###
 
 "AnyKernel is a template for an update.zip that can apply any kernel to any ROM, regardless of ramdisk." - Koush
 
@@ -7,8 +9,8 @@ AnyKernel2 pushes the format even further by allowing kernel developers to modif
 
 A working script based on DirtyV Kernel for Galaxy Nexus (tuna) is included for reference.
 
-// Properties / Variables
-
+## // Properties / Variables ##
+```bash
 kernel.string=KernelName by YourName @ xda-developers
 do.devicecheck=1
 do.initd=1
@@ -26,9 +28,11 @@ do.initd=1 will create the init.d directory in /system/etc/init.d/ and apply 755
 do.modules=1 will push the contents of the module directory to /system/lib/modules/ and apply 644 permissions.
 
 do.cleanup=0 will keep the zip from removing it's working directory in /tmp/anykernel - this can be useful if trying to debug in adb shell whether the patches worked correctly. 
+```
 
-// Command Methods
+## // Command Methods ##
 
+```bash
 dump_boot
 backup_file <file>
 replace_string <file> <if search string> <original string> <replacement string>
@@ -43,6 +47,7 @@ append_file <file> <if search string> <patch file>
 replace_file <file> <permissions> <patch file>
 patch_fstab <fstab file> <mount match name> <fs match type> <block|mount|fstype|options|flags> <original string> <replacement string>
 write_boot
+```
 
 "if search string" is the string it looks for to decide whether it needs to add the tweak or not, so generally something to indicate the tweak already exists.
 
@@ -54,15 +59,20 @@ Similarly, "line match string" and "line replace string" are the search strings 
 
 You may also use ui_print "<text>" to write messages back to the recovery during the modification process, and contains "<string>" "<substring>" to simplify string testing logic you might want in your script.
 
-// Instructions
+## // Instructions ##
 
 1- Place zImage in the root (dtb should also go here for devices that require a custom one, both will fallback to the original if not included)
+
 2- Place any required ramdisk files in /ramdisk
+
 3- Place any required patch files (generally partial files which go with commands) in /patch
+
 4- Modify the anykernel.sh to add your kernel's name, boot partition location, permissions for included ramdisk files, and use methods for any required ramdisk modifications
+
 5- zip -r9 UPDATE-AnyKernel2.zip * -x README UPDATE-AnyKernel2.zip
 
 If supporting a recovery that forces zip signature verification (like Cyanogen Recovery) then you will need to also sign your zip using the method I describe here:
+
 http://forum.xda-developers.com/android/software-hacking/dev-complete-shell-script-flashable-zip-t2934449
 
 Not required, but any tweaks you can't hardcode into the source should be added with a bootscript.sh like is done in the example provided.

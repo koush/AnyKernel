@@ -19,7 +19,9 @@ do.cleanup=1
 device.name1=maguro
 device.name2=toro
 device.name3=toroplus
+
 block=/dev/block/platform/omap/omap_hsmmc.0/by-name/boot;
+is_slot_device=0;
 ```
 
 __do.devicecheck=1__ specified requires at least device.name1 to be present. This should match ro.product.device or ro.build.product for your device. There is support for up to 5 device.name# properties.
@@ -28,7 +30,9 @@ __do.initd=1__ will create the init.d directory in /system/etc/init.d/ and apply
 
 __do.modules=1__ will push the contents of the module directory to /system/lib/modules/ and apply 644 permissions.
 
-__do.cleanup=0__ will keep the zip from removing it's working directory in /tmp/anykernel - this can be useful if trying to debug in adb shell whether the patches worked correctly. 
+__do.cleanup=0__ will keep the zip from removing it's working directory in /tmp/anykernel - this can be useful if trying to debug in adb shell whether the patches worked correctly.
+
+`is_slot_device=1` enables detection of the suffix for the active boot partition on slot-based devices and will add this to the end of the supplied `block=` path.
 
 ## // Command Methods ##
 ```

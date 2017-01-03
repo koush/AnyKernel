@@ -32,6 +32,10 @@ dump_boot() {
   if [ $? != 0 ]; then
     ui_print " "; ui_print "Dumping/splitting image failed. Aborting..."; exit 1;
   fi;
+  if [ -f "$bin/mkmtkhdr" ]; then
+    dd bs=512 skip=1 conv=notrunc if=$split_img/boot.img-ramdisk.gz of=$split_img/temprd;
+    mv -f $split_img/temprd $split_img/boot.img-ramdisk.gz;
+  fi;
   mv -f $ramdisk /tmp/anykernel/rdtmp;
   mkdir -p $ramdisk;
   cd $ramdisk;
@@ -82,6 +86,14 @@ write_boot() {
   fi;
   if [ $? != 0 ]; then
     ui_print " "; ui_print "Repacking ramdisk failed. Aborting..."; exit 1;
+  fi;
+  if [ -f "$bin/mkmtkhdr" ]; then
+    cd /tmp/anykernel;
+    $bin/mkmtkhdr --rootfs ramdisk-new.cpio.gz;
+    mv -f ramdisk-new.cpio.gz-mtk ramdisk-new.cpio.gz;
+    case $kernel in
+      /tmp/anykernel/zImage*) $bin/mkmtkhdr --kernel $kernel; kernel=$kernel-mtk;;
+    esac;
   fi;
   $bin/mkbootimg --kernel $kernel --ramdisk /tmp/anykernel/ramdisk-new.cpio.gz $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset $tagsoff --os_version "$osver" --os_patch_level "$oslvl" $dtb --output /tmp/anykernel/boot-new.img;
   if [ $? != 0 ]; then
@@ -139,7 +151,11 @@ insert_line() {
       after) offset=1;;
     esac;
     line=$((`grep -n "$4" $1 | head -n1 | cut -d: -f1` + offset));
-    sed -i "${line}s;^;${5}\n;" $1;
+    if [ "$(wc -l $1 | cut -d\  -f1)" -le "$line" ]; then
+      echo "$5" >> $1;
+    else
+      sed -i "${line}s;^;${5}\n;" $1;
+    fi;
   fi;
 }
 

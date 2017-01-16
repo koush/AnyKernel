@@ -40,8 +40,10 @@ ui_print "$(file_getprop /tmp/anykernel/anykernel.sh kernel.string)";
 ui_print " ";
 ui_print "AnyKernel2 by osm0sis @ xda-developers";
 ui_print " ";
+umount /system;
 mount -o ro -t auto /system;
 mount /data;
+test -f /system/system/build.prop && root=/system;
 
 if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.devicecheck)" == 1 ]; then
   ui_print "Checking device...";
@@ -62,8 +64,8 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.initd)" == 1 ]; then
   ui_print "Creating init.d...";
   ui_print " ";
   mount -o rw,remount -t auto /system;
-  mkdir /system/etc/init.d;
-  set_perm_recursive 0 0 0755 0755 /system/etc/init.d;
+  mkdir $root/system/etc/init.d;
+  set_perm_recursive 0 0 0755 0755 $root/system/etc/init.d;
   mount -o ro,remount -t auto /system;
 fi;
 
@@ -83,8 +85,8 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.modules)" == 1 ]; then
   ui_print " ";
   ui_print "Pushing modules...";
   mount -o rw,remount -t auto /system;
-  cp -rf /tmp/anykernel/modules/* /system/lib/modules/;
-  set_perm_recursive 0 0 0755 0644 /system/lib/modules;
+  cp -rf /tmp/anykernel/modules/* $root/system/lib/modules/;
+  set_perm_recursive 0 0 0755 0644 $root/system/lib/modules;
   mount -o ro,remount -t auto /system;
 fi;
 

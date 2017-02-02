@@ -148,7 +148,7 @@ write_boot() {
 }
 
 # backup_file <file>
-backup_file() { cp $1 $1~; }
+backup_file() { test ! -f $1~ && cp $1 $1~; }
 
 # replace_string <file> <if search string> <original string> <replacement string>
 replace_string() {

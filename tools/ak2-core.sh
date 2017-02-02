@@ -28,13 +28,27 @@ contains() { test "${1#*$2}" != "$1" && return 0 || return 1; }
 # dump boot and extract ramdisk
 dump_boot() {
   dd if=$block of=/tmp/anykernel/boot.img;
-  $bin/unpackbootimg -i /tmp/anykernel/boot.img -o $split_img;
+  if [ -f "$bin/unpackelf" ]; then
+    $bin/unpackelf -i /tmp/anykernel/boot.img -o $split_img;
+    mv -f $split_img/boot.img-ramdisk.cpio.gz $split_img/boot.img-ramdisk.gz;
+  else
+    $bin/unpackbootimg -i /tmp/anykernel/boot.img -o $split_img;
+  fi;
   if [ $? != 0 ]; then
     ui_print " "; ui_print "Dumping/splitting image failed. Aborting..."; exit 1;
   fi;
   if [ -f "$bin/mkmtkhdr" ]; then
     dd bs=512 skip=1 conv=notrunc if=$split_img/boot.img-ramdisk.gz of=$split_img/temprd;
     mv -f $split_img/temprd $split_img/boot.img-ramdisk.gz;
+  fi;
+  if [ -f "$bin/unpackelf" -a -f "$split_img/boot.img-dtb" ]; then
+    case $(od -ta -An -N4 $split_img/boot.img-dtb | sed -e 's/del //' -e 's/   //g') in
+      QCDT|ELF) ;;
+      *) gzip $split_img/boot.img-zImage;
+         mv -f $split_img/boot.img-zImage.gz $split_img/boot.img-zImage;
+         cat $split_img/boot.img-dtb >> $split_img/boot.img-zImage;
+         rm -f $split_img/boot.img-dtb;;
+    esac;
   fi;
   mv -f $ramdisk /tmp/anykernel/rdtmp;
   mkdir -p $ramdisk;
@@ -49,15 +63,25 @@ dump_boot() {
 # repack ramdisk then build and write image
 write_boot() {
   cd $split_img;
-  cmdline=`cat *-cmdline`;
-  board=`cat *-board`;
+  if [ -f *-cmdline ]; then
+    cmdline=`cat *-cmdline`;
+  fi;
+  if [ -f *-board ]; then
+    board=`cat *-board`;
+  fi;
   base=`cat *-base`;
   pagesize=`cat *-pagesize`;
   kerneloff=`cat *-kerneloff`;
   ramdiskoff=`cat *-ramdiskoff`;
-  tagsoff=`cat *-tagsoff`;
-  osver=`cat *-osversion`;
-  oslvl=`cat *-oslevel`;
+  if [ -f *-tagsoff ]; then
+    tagsoff=`cat *-tagsoff`;
+  fi;
+  if [ -f *-osversion ]; then
+    osver=`cat *-osversion`;
+  fi;
+  if [ -f *-oslevel ]; then
+    oslvl=`cat *-oslevel`;
+  fi;
   if [ -f *-second ]; then
     second=`ls *-second`;
     second="--second $split_img/$second";
@@ -98,7 +122,7 @@ write_boot() {
       *) $bin/mkmtkhdr --kernel $kernel; kernel=$kernel-mtk;;
     esac;
   fi;
-  $bin/mkbootimg --kernel $kernel --ramdisk /tmp/anykernel/ramdisk-new.cpio.gz $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset $tagsoff --os_version "$osver" --os_patch_level "$oslvl" $dtb --output /tmp/anykernel/boot-new.img;
+  $bin/mkbootimg --kernel $kernel --ramdisk /tmp/anykernel/ramdisk-new.cpio.gz $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset "$tagsoff" --os_version "$osver" --os_patch_level "$oslvl" $dtb --output /tmp/anykernel/boot-new.img;
   if [ $? != 0 ]; then
     ui_print " "; ui_print "Repacking image failed. Aborting..."; exit 1;
   elif [ `wc -c < /tmp/anykernel/boot-new.img` -gt `wc -c < /tmp/anykernel/boot.img` ]; then

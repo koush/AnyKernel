@@ -64,11 +64,13 @@ write_boot() {
     secondoff=`cat *-secondoff`;
     secondoff="--second_offset $secondoff";
   fi;
-  if [ -f /tmp/anykernel/zImage ]; then
-    kernel=/tmp/anykernel/zImage;
-  elif [ -f /tmp/anykernel/zImage-dtb ]; then
-    kernel=/tmp/anykernel/zImage-dtb;
-  else
+  for i in zImage zImage-dtb Image.gz Image.gz-dtb; do
+    if [ -f /tmp/anykernel/$i ]; then
+      kernel=/tmp/anykernel/$i;
+      break;
+    fi;
+  done;
+  if [ ! "$kernel" ]; then
     kernel=`ls *-zImage`;
     kernel=$split_img/$kernel;
   fi;
@@ -92,7 +94,8 @@ write_boot() {
     $bin/mkmtkhdr --rootfs ramdisk-new.cpio.gz;
     mv -f ramdisk-new.cpio.gz-mtk ramdisk-new.cpio.gz;
     case $kernel in
-      /tmp/anykernel/zImage*) $bin/mkmtkhdr --kernel $kernel; kernel=$kernel-mtk;;
+      $split_img/*) ;;
+      *) $bin/mkmtkhdr --kernel $kernel; kernel=$kernel-mtk;;
     esac;
   fi;
   $bin/mkbootimg --kernel $kernel --ramdisk /tmp/anykernel/ramdisk-new.cpio.gz $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset $tagsoff --os_version "$osver" --os_patch_level "$oslvl" $dtb --output /tmp/anykernel/boot-new.img;

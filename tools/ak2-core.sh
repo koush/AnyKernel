@@ -27,7 +27,11 @@ contains() { test "${1#*$2}" != "$1" && return 0 || return 1; }
 
 # dump boot and extract ramdisk
 dump_boot() {
-  dd if=$block of=/tmp/anykernel/boot.img;
+  if [ -f "$bin/nanddump" ]; then
+    $bin/nanddump -f /tmp/anykernel/boot.img $block;
+  else
+    dd if=$block of=/tmp/anykernel/boot.img;
+  fi;
   if [ -f "$bin/unpackelf" ]; then
     $bin/unpackelf -i /tmp/anykernel/boot.img -o $split_img;
     mv -f $split_img/boot.img-ramdisk.cpio.gz $split_img/boot.img-ramdisk.gz;
@@ -134,7 +138,13 @@ write_boot() {
       ui_print " "; ui_print "User script execution failed. Aborting..."; exit 1;
     fi;
   fi;
-  dd if=/tmp/anykernel/boot-new.img of=$block;
+  if [ -f "$bin/flash_erase" -a -f "$bin/nandwrite" ]; then
+    $bin/flash_erase $block 0 0;
+    $bin/nandwrite -p $block /tmp/anykernel/boot-new.img;
+  else
+    dd if=/dev/zero of=$block;
+    dd if=/tmp/anykernel/boot-new.img of=$block;
+  fi;
 }
 
 # backup_file <file>

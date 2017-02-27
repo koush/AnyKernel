@@ -117,8 +117,8 @@ write_boot() {
   if [ $? != 0 ]; then
     ui_print " "; ui_print "Repacking ramdisk failed. Aborting..."; exit 1;
   fi;
+  cd /tmp/anykernel;
   if [ -f "$bin/mkmtkhdr" ]; then
-    cd /tmp/anykernel;
     $bin/mkmtkhdr --rootfs ramdisk-new.cpio.gz;
     mv -f ramdisk-new.cpio.gz-mtk ramdisk-new.cpio.gz;
     case $kernel in
@@ -126,11 +126,18 @@ write_boot() {
       *) $bin/mkmtkhdr --kernel $kernel; kernel=$kernel-mtk;;
     esac;
   fi;
-  $bin/mkbootimg --kernel $kernel --ramdisk /tmp/anykernel/ramdisk-new.cpio.gz $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset "$tagsoff" --os_version "$osver" --os_patch_level "$oslvl" $dtb --output /tmp/anykernel/boot-new.img;
+  $bin/mkbootimg --kernel $kernel --ramdisk ramdisk-new.cpio.gz $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset "$tagsoff" --os_version "$osver" --os_patch_level "$oslvl" $dtb --output boot-new.img;
   if [ $? != 0 ]; then
     ui_print " "; ui_print "Repacking image failed. Aborting..."; exit 1;
-  elif [ `wc -c < /tmp/anykernel/boot-new.img` -gt `wc -c < /tmp/anykernel/boot.img` ]; then
+  elif [ `wc -c < boot-new.img` -gt `wc -c < boot.img` ]; then
     ui_print " "; ui_print "New image larger than boot partition. Aborting..."; exit 1;
+  fi;
+  if [ -f "$bin/futility" -a -d "$bin/chromeos" ]; then
+    $bin/futility vbutil_kernel --pack boot-new-signed.img --keyblock $bin/chromeos/kernel.keyblock --signprivate $bin/chromeos/kernel_data_key.vbprivk --version 1 --vmlinuz boot-new.img --bootloader $bin/chromeos/empty --config $bin/chromeos/empty --arch arm --flags 0x1;
+    if [ $? != 0 ]; then
+      ui_print " "; ui_print "Signing image failed. Aborting..."; exit 1;
+    fi;
+    mv -f boot-new-signed.img boot-new.img;
   fi;
   if [ -f "/data/custom_boot_image_patch.sh" ]; then
     ash /data/custom_boot_image_patch.sh /tmp/anykernel/boot-new.img;

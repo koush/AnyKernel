@@ -5,7 +5,6 @@
 # EDIFY properties
 kernel.string=DirtyV by bsmitty83 @ xda-developers
 do.devicecheck=1
-do.initd=1
 do.modules=0
 do.cleanup=1
 do.cleanuponabort=0

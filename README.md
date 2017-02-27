@@ -13,7 +13,6 @@ A working script based on DirtyV Kernel for Galaxy Nexus (tuna) is included for 
 ```
 kernel.string=KernelName by YourName @ xda-developers
 do.devicecheck=1
-do.initd=1
 do.modules=1
 do.cleanup=1
 do.cleanuponabort=0
@@ -26,8 +25,6 @@ is_slot_device=0;
 ```
 
 __do.devicecheck=1__ specified requires at least device.name1 to be present. This should match ro.product.device or ro.build.product for your device. There is support for up to 5 device.name# properties.
-
-__do.initd=1__ will create the init.d directory in /system/etc/init.d/ and apply 755 permissions.
 
 __do.modules=1__ will push the contents of the module directory to /system/lib/modules/ and apply 644 permissions.
 

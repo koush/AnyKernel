@@ -145,6 +145,9 @@ write_boot() {
       ui_print " "; ui_print "User script execution failed. Aborting..."; exit 1;
     fi;
   fi;
+  if [ "$(strings /tmp/anykernel/boot.img | grep SEANDROIDENFORCE )" ]; then
+    printf 'SEANDROIDENFORCE' >> /tmp/anykernel/boot-new.img;
+  fi;
   if [ -f "$bin/flash_erase" -a -f "$bin/nandwrite" ]; then
     $bin/flash_erase $block 0 0;
     $bin/nandwrite -p $block /tmp/anykernel/boot-new.img;

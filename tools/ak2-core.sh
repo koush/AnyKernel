@@ -32,7 +32,7 @@ dump_boot() {
   else
     dd if=$block of=/tmp/anykernel/boot.img;
   fi;
-  if [ -f "$bin/unpackelf" ]; then
+  if [ -f "$bin/unpackelf" -a "$($bin/unpackelf -i /tmp/anykernel/boot.img -h -q; echo $?)" != 0 ]; then
     $bin/unpackelf -i /tmp/anykernel/boot.img -o $split_img;
     mv -f $split_img/boot.img-ramdisk.cpio.gz $split_img/boot.img-ramdisk.gz;
   else

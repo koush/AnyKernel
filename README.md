@@ -78,7 +78,7 @@ If supporting a recovery that forces zip signature verification (like Cyanogen R
 
 http://forum.xda-developers.com/android/software-hacking/dev-complete-shell-script-flashable-zip-t2934449
 
-Not required, but any tweaks you can't hardcode into the source should be added with a bootscript.sh like is done in the example provided.
+Not required, but any tweaks you can't hardcode into the source (best practice) should be added with an additional init.tweaks.rc or bootscript.sh to minimize the necessary ramdisk changes.
 
 
 Have fun!

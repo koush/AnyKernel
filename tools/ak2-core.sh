@@ -32,7 +32,7 @@ dump_boot() {
   else
     dd if=$block of=/tmp/anykernel/boot.img;
   fi;
-  if [ -f "$bin/unpackelf" -a "$($bin/unpackelf -i /tmp/anykernel/boot.img -h -q; echo $?)" == 0 ]; then
+  if [ -f "$bin/unpackelf" -a "$($bin/unpackelf -i /tmp/anykernel/boot.img -h -q 2>/dev/null; echo $?)" == 0 ]; then
     $bin/unpackelf -i /tmp/anykernel/boot.img -o $split_img;
     mv -f $split_img/boot.img-ramdisk.cpio.gz $split_img/boot.img-ramdisk.gz;
   else
@@ -102,9 +102,13 @@ write_boot() {
     kernel=`ls *-zImage`;
     kernel=$split_img/$kernel;
   fi;
-  if [ -f /tmp/anykernel/dtb ]; then
-    dtb="--dt /tmp/anykernel/dtb";
-  elif [ -f *-dtb ]; then
+  for i in dtb dt.img; do
+    if [ -f /tmp/anykernel/$i ]; then
+      dtb="--dt /tmp/anykernel/$i";
+      break;
+    fi;
+  done;
+  if [ ! "$dtb" -a -f *-dtb ]; then
     dtb=`ls *-dtb`;
     dtb="--dt $split_img/$dtb";
   fi;

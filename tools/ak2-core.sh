@@ -27,6 +27,9 @@ contains() { test "${1#*$2}" != "$1" && return 0 || return 1; }
 
 # dump boot and extract ramdisk
 dump_boot() {
+  if [ ! -e "$(echo $block | cut -d\  -f1)" ]; then
+    ui_print " "; ui_print "Invalid partition. Aborting..."; exit 1;
+  fi;
   if [ -f "$bin/nanddump" ]; then
     $bin/nanddump -f /tmp/anykernel/boot.img $block;
   else

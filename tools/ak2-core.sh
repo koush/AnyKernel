@@ -116,7 +116,7 @@ write_boot() {
     dtb="--dt $split_img/$dtb";
   fi;
   if [ -f "$bin/mkbootfs" ]; then
-    $bin/mkbootfs /tmp/anykernel/ramdisk | gzip > /tmp/anykernel/ramdisk-new.cpio.gz;
+    $bin/mkbootfs $ramdisk | gzip > /tmp/anykernel/ramdisk-new.cpio.gz;
   else
     cd $ramdisk;
     find . | cpio -H newc -o | gzip > /tmp/anykernel/ramdisk-new.cpio.gz;
@@ -277,6 +277,18 @@ patch_fstab() {
     esac;
     newentry=$(echo "$entry" | sed "s;${part};${6};");
     sed -i "s;${entry};${newentry};" $1;
+  fi;
+}
+
+# patch_cmdline <cmdline match string> [<replacement string>]
+patch_cmdline() {
+  cmdfile=`ls $split_img/*-cmdline`;
+  if [ -z "$(grep "$1" $cmdfile)" ]; then
+    cmdtmp=`cat $cmdfile`;
+    echo "$cmdtmp $1" > $cmdfile;
+  else
+    match=$(grep -o "$1.*$" $cmdfile | cut -d\  -f1);
+    sed -i -e "s;${match};${2};" -e 's;  ; ;' -e 's;[ \t]*$;;' $cmdfile;
   fi;
 }
 

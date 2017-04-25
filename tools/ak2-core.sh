@@ -95,6 +95,10 @@ write_boot() {
     secondoff=`cat *-secondoff`;
     secondoff="--second_offset $secondoff";
   fi;
+  if [ -f *-hash ]; then
+    hash=`cat *-hash`;
+    hash="--hash $hash";
+  fi;
   for i in zImage zImage-dtb Image.gz Image Image-dtb Image.gz-dtb Image.bz2 Image.bz2-dtb Image.lzo Image.lzo-dtb Image.lzma Image.lzma-dtb Image.xz Image.xz-dtb Image.lz4 Image.lz4-dtb Image.fit; do
     if [ -f /tmp/anykernel/$i ]; then
       kernel=/tmp/anykernel/$i;
@@ -133,7 +137,7 @@ write_boot() {
       *) $bin/mkmtkhdr --kernel $kernel; kernel=$kernel-mtk;;
     esac;
   fi;
-  $bin/mkbootimg --kernel $kernel --ramdisk ramdisk-new.cpio.gz $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset "$tagsoff" --os_version "$osver" --os_patch_level "$oslvl" $dtb --output boot-new.img;
+  $bin/mkbootimg --kernel $kernel --ramdisk ramdisk-new.cpio.gz $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset "$tagsoff" --os_version "$osver" --os_patch_level "$oslvl" $hash $dtb --output boot-new.img;
   if [ $? != 0 ]; then
     ui_print " "; ui_print "Repacking image failed. Aborting..."; exit 1;
   elif [ `wc -c < boot-new.img` -gt `wc -c < boot.img` ]; then

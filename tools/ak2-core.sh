@@ -150,6 +150,12 @@ write_boot() {
     fi;
     mv -f boot-new-signed.img boot-new.img;
   fi;
+  if [ -f "$bin/blobpack" ]; then
+    printf '-SIGNED-BY-SIGNBLOB-\00\00\00\00\00\00\00\00' > boot-new-signed.img;
+    $bin/blobpack tempblob LNX boot-new.img;
+    cat tempblob >> boot-new-signed.img;
+    mv -f boot-new-signed.img boot-new.img;
+  fi;
   if [ -f "/data/custom_boot_image_patch.sh" ]; then
     ash /data/custom_boot_image_patch.sh /tmp/anykernel/boot-new.img;
     if [ $? != 0 ]; then

@@ -64,17 +64,32 @@ __"block|mount|fstype|options|flags"__ requires you specify which part (listed i
 
 You may also use _ui_print "\<text\>"_ to write messages back to the recovery during the modification process, and _contains "\<string\>" "\<substring\>"_ to simplify string testing logic you might want in your script.
 
+## // Binary Inclusion ##
+
+The AK2 repo includes my latest static ARM builds of `mkbootimg`, `unpackbootimg` and `busybox` by default to keep the basic package small. Builds for other architectures and optional binaries (see below) are available from my latest AIK-mobile and FlashIt packages, respectively, here:
+
+https://forum.xda-developers.com/showthread.php?t=2073775 (Android Image Kitchen thread)  
+https://forum.xda-developers.com/showthread.php?t=2239421 (Odds and Ends thread)
+
+Optional supported binaries which may be placed in /tools to enable built-in expanded functionality are as follows:
+* `mkbootfs` - for broken recoveries, or, booted flash support for a script or app via bind mounting to a /tmp directory
+* `flash_erase`, `nanddump`, `nandwrite` - MTD block device support for devices where the `dd` command is not sufficient
+* `unpackelf` - Sony ELF kernel.elf format support, repacking as AOSP standard boot.img for unlocked bootloaders
+* `mkmtkhdr` - MTK device boot image section headers support
+* `futility` + `chromeos` test keys directory - Google ChromeOS signature support
+* `blobpack` - Asus SignBlob signature support
+
 ## // Instructions ##
 
 1. Place zImage in the root (dtb should also go here for devices that require a custom one, both will fallback to the original if not included)
 
-2. Place any required ramdisk files in /ramdisk
+2. Place any required ramdisk files in /ramdisk, and modules in /modules
 
 3. Place any required patch files (generally partial files which go with commands) in /patch
 
 4. Modify the anykernel.sh to add your kernel's name, boot partition location, permissions for included ramdisk files, and use methods for any required ramdisk modifications
 
-5. zip -r9 UPDATE-AnyKernel2.zip * -x README UPDATE-AnyKernel2.zip
+5. `zip -r9 UPDATE-AnyKernel2.zip * -x README UPDATE-AnyKernel2.zip`
 
 If supporting a recovery that forces zip signature verification (like Cyanogen Recovery) then you will need to also sign your zip using the method I describe here:
 
@@ -82,5 +97,6 @@ http://forum.xda-developers.com/android/software-hacking/dev-complete-shell-scri
 
 Not required, but any tweaks you can't hardcode into the source (best practice) should be added with an additional init.tweaks.rc or bootscript.sh to minimize the necessary ramdisk changes.
 
+It is also extremely important to note that for the broadest AK2 compatibility it is always better to modify a ramdisk file rather than replace it.
 
 Have fun!

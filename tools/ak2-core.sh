@@ -38,10 +38,29 @@ dump_boot() {
   if [ -f "$bin/unpackelf" -a "$($bin/unpackelf -i /tmp/anykernel/boot.img -h -q 2>/dev/null; echo $?)" == 0 ]; then
     $bin/unpackelf -i /tmp/anykernel/boot.img -o $split_img;
     mv -f $split_img/boot.img-ramdisk.cpio.gz $split_img/boot.img-ramdisk.gz;
+  elif [ -f "$bin/dumpimage" ]; then
+    $bin/dumpimage -l /tmp/anykernel/boot.img;
+    $bin/dumpimage -l /tmp/anykernel/boot.img > $split_img/boot.img-header;
+    grep "Name:" $split_img/boot.img-header | cut -c15- > $split_img/boot.img-name;
+    grep "Type:" $split_img/boot.img-header | cut -c15- | cut -d\  -f1 > $split_img/boot.img-arch;
+    grep "Type:" $split_img/boot.img-header | cut -c15- | cut -d\  -f2 > $split_img/boot.img-os;
+    grep "Type:" $split_img/boot.img-header | cut -c15- | cut -d\  -f3 | cut -d- -f1 > $split_img/boot.img-type;
+    grep "Type:" $split_img/boot.img-header | cut -d\( -f2 | cut -d\) -f1 | cut -d\  -f1 | cut -d- -f1 > $split_img/boot.img-comp;
+    grep "Address:" $split_img/boot.img-header | cut -c15- > $split_img/boot.img-addr;
+    grep "Point:" $split_img/boot.img-header | cut -c15- > $split_img/boot.img-ep;
+    $bin/dumpimage -i /tmp/anykernel/boot.img -p 0 $split_img/boot.img-zImage;
+    test $? != 0 && dumpfail=1;
+    if [ "$(cat $split_img/boot.img-type)" == "Multi" ]; then
+      $bin/dumpimage -i /tmp/anykernel/boot.img -p 1 $split_img/boot.img-ramdisk.gz;
+    else
+      dumpfail=1;
+    fi;
+  elif [ -f "$bin/pxa1088-unpackbootimg" ]; then
+    $bin/pxa1088-unpackbootimg -i /tmp/anykernel/boot.img -o $split_img;
   else
     $bin/unpackbootimg -i /tmp/anykernel/boot.img -o $split_img;
   fi;
-  if [ $? != 0 ]; then
+  if [ $? != 0 -o "$dumpfail" ]; then
     ui_print " "; ui_print "Dumping/splitting image failed. Aborting..."; exit 1;
   fi;
   if [ -f "$bin/mkmtkhdr" ]; then
@@ -70,34 +89,48 @@ dump_boot() {
 # repack ramdisk then build and write image
 write_boot() {
   cd $split_img;
-  if [ -f *-cmdline ]; then
-    cmdline=`cat *-cmdline`;
-  fi;
-  if [ -f *-board ]; then
-    board=`cat *-board`;
-  fi;
-  base=`cat *-base`;
-  pagesize=`cat *-pagesize`;
-  kerneloff=`cat *-kerneloff`;
-  ramdiskoff=`cat *-ramdiskoff`;
-  if [ -f *-tagsoff ]; then
-    tagsoff=`cat *-tagsoff`;
-  fi;
-  if [ -f *-osversion ]; then
-    osver=`cat *-osversion`;
-  fi;
-  if [ -f *-oslevel ]; then
-    oslvl=`cat *-oslevel`;
-  fi;
-  if [ -f *-second ]; then
-    second=`ls *-second`;
-    second="--second $split_img/$second";
-    secondoff=`cat *-secondoff`;
-    secondoff="--second_offset $secondoff";
-  fi;
-  if [ -f *-hash ]; then
-    hash=`cat *-hash`;
-    hash="--hash $hash";
+  if [ -f "$bin/mkimage" ]; then
+    name=`cat *-name`;
+    arch=`cat *-arch`;
+    os=`cat *-os`;
+    type=`cat *-type`;
+    comp=`cat *-comp`;
+    test "$comp" == "uncompressed" && comp=none;
+    addr=`cat *-addr`;
+    ep=`cat *-ep`;
+  else
+    if [ -f *-cmdline ]; then
+      cmdline=`cat *-cmdline`;
+    fi;
+    if [ -f *-board ]; then
+      board=`cat *-board`;
+    fi;
+    base=`cat *-base`;
+    pagesize=`cat *-pagesize`;
+    kerneloff=`cat *-kerneloff`;
+    ramdiskoff=`cat *-ramdiskoff`;
+    if [ -f *-tagsoff ]; then
+      tagsoff=`cat *-tagsoff`;
+    fi;
+    if [ -f *-osversion ]; then
+      osver=`cat *-osversion`;
+    fi;
+    if [ -f *-oslevel ]; then
+      oslvl=`cat *-oslevel`;
+    fi;
+    if [ -f *-second ]; then
+      second=`ls *-second`;
+      second="--second $split_img/$second";
+      secondoff=`cat *-secondoff`;
+      secondoff="--second_offset $secondoff";
+    fi;
+    if [ -f *-hash ]; then
+      hash=`cat *-hash`;
+      hash="--hash $hash";
+    fi;
+    if [ -f *-unknown ]; then
+      unknown=`cat *-unknown`;
+    fi;
   fi;
   for i in zImage zImage-dtb Image.gz Image Image-dtb Image.gz-dtb Image.bz2 Image.bz2-dtb Image.lzo Image.lzo-dtb Image.lzma Image.lzma-dtb Image.xz Image.xz-dtb Image.lz4 Image.lz4-dtb Image.fit; do
     if [ -f /tmp/anykernel/$i ]; then
@@ -137,7 +170,13 @@ write_boot() {
       *) $bin/mkmtkhdr --kernel $kernel; kernel=$kernel-mtk;;
     esac;
   fi;
-  $bin/mkbootimg --kernel $kernel --ramdisk ramdisk-new.cpio.gz $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset "$tagsoff" --os_version "$osver" --os_patch_level "$oslvl" $hash $dtb --output boot-new.img;
+  if [ -f "$bin/mkimage" ]; then
+    $bin/mkimage -A $arch -O $os -T $type -C $comp -a $addr -e $ep -n "$name" -d $kernel:$ramdisk boot-new.img;
+  elif [ -f "$bin/pxa1088-mkbootimg" ]; then
+    $bin/pxa1088-mkbootimg --kernel $kernel --ramdisk ramdisk-new.cpio.gz $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset "$tagsoff" --unknown $unknown $dtb --output boot-new.img;
+  else
+    $bin/mkbootimg --kernel $kernel --ramdisk ramdisk-new.cpio.gz $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset "$tagsoff" --os_version "$osver" --os_patch_level "$oslvl" $hash $dtb --output boot-new.img;
+  fi;
   if [ $? != 0 ]; then
     ui_print " "; ui_print "Repacking image failed. Aborting..."; exit 1;
   elif [ `wc -c < boot-new.img` -gt `wc -c < boot.img` ]; then

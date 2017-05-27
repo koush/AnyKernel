@@ -48,9 +48,9 @@ ui_print "$(file_getprop /tmp/anykernel/anykernel.sh kernel.string)";
 ui_print " ";
 ui_print "AnyKernel2 by osm0sis @ xda-developers";
 ui_print " ";
-umount /system;
+umount /system 2>/dev/null;
 mount -o ro -t auto /system;
-mount /data;
+mount /data 2>/dev/null;
 test -f /system/system/build.prop && root=/system;
 
 if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.devicecheck)" == 1 ]; then

@@ -3,8 +3,8 @@
 # osm0sis @ xda-developers
 
 OUTFD=/proc/self/fd/$2;
-ZIP="$3";
-DIR=`dirname "$ZIP"`;
+ZIPFILE="$3";
+DIR=`dirname "$ZIPFILE"`;
 
 ui_print() {
   until [ ! "$1" ]; do
@@ -37,7 +37,7 @@ ui_print " ";
 cleanup;
 mkdir -p /tmp/anykernel/bin;
 cd /tmp/anykernel;
-unzip -o "$ZIP";
+unzip -o "$ZIPFILE";
 if [ $? != 0 -o -z "$(ls /tmp/anykernel/tools)" ]; then
   abort "Unzip failed. Aborting...";
 fi;
@@ -88,6 +88,14 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.modules)" == 1 ]; then
   set_perm_recursive 0 0 0755 0644 $root/system/lib/modules;
   mount -o ro,remount -t auto /system;
 fi;
+
+case $(basename "$ZIPFILE" .zip) in
+  *-debugging)
+    ui_print " ";
+    ui_print "Creating debugging archive in zip directory...";
+    $bb tar -czvf "$DIR/anykernel2-$(date +%Y-%m-%d_%H%M%S)-debug.tgz" /tmp/*;
+  ;;
+esac;
 
 if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.cleanup)" == 1 ]; then
   cleanup;

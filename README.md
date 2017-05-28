@@ -101,4 +101,6 @@ Not required, but any tweaks you can't hardcode into the source (best practice) 
 
 It is also extremely important to note that for the broadest AK2 compatibility it is always better to modify a ramdisk file rather than replace it.
 
+If running into trouble when flashing an AK2 zip, the suffix -debugging may be added to the zip's filename to enable creation of a debug .tgz of /tmp for later examination while booted or on desktop.
+
 Have fun!

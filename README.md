@@ -79,6 +79,7 @@ Optional supported binaries which may be placed in /tools to enable built-in exp
 * `unpackelf` - Sony ELF kernel.elf format support, repacking as AOSP standard boot.img for unlocked bootloaders
 * `mkmtkhdr` - MTK device boot image section headers support
 * `futility` + `chromeos` test keys directory - Google ChromeOS signature support
+* `BootSignature_Android.jar` + `avb` keys directory - Google Android Verified Boot (AVB) signature support
 * `blobpack` - Asus SignBlob signature support
 
 ## // Instructions ##

@@ -59,6 +59,9 @@ dump_boot() {
     $bin/pxa1088-unpackbootimg -i /tmp/anykernel/boot.img -o $split_img;
   else
     $bin/unpackbootimg -i /tmp/anykernel/boot.img -o $split_img;
+    if [ "$(cat $split_img/boot.img-hash)" == "unknown" ]; then
+      echo "sha1" > $split_img/boot.img-hash;
+    fi;
   fi;
   if [ $? != 0 -o "$dumpfail" ]; then
     ui_print " "; ui_print "Dumping/splitting image failed. Aborting..."; exit 1;

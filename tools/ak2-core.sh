@@ -254,7 +254,11 @@ replace_section() {
   begin=`grep -n "$2" $1 | head -n1 | cut -d: -f1`;
   for end in `grep -n "$3" $1 | cut -d: -f1`; do
     if [ "$begin" -lt "$end" ]; then
-      sed -i "/${2//\//\\/}/,/${3//\//\\/}/d" $1;
+      if [ "$3" == " " ]; then
+        sed -i "/${2//\//\\/}/,/^\s*$/d" $1;
+      else
+        sed -i "/${2//\//\\/}/,/${3//\//\\/}/d" $1;
+      fi;
       sed -i "${begin}s;^;${4}\n;" $1;
       break;
     fi;
@@ -266,7 +270,11 @@ remove_section() {
   begin=`grep -n "$2" $1 | head -n1 | cut -d: -f1`;
   for end in `grep -n "$3" $1 | cut -d: -f1`; do
     if [ "$begin" -lt "$end" ]; then
-      sed -i "/${2//\//\\/}/,/${3//\//\\/}/d" $1;
+      if [ "$3" == " " ]; then
+        sed -i "/${2//\//\\/}/,/^\s*$/d" $1;
+      else
+        sed -i "/${2//\//\\/}/,/${3//\//\\/}/d" $1;
+      fi;
       break;
     fi;
   done;

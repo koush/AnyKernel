@@ -201,7 +201,7 @@ write_boot() {
     unset LD_LIBRARY_PATH;
     pk8=`ls $bin/avb/*.pk8`;
     cert=`ls $bin/avb/*.x509.*`;
-    /system/bin/dalvikvm -Xbootclasspath:/system/framework/core-oj.jar:/system/framework/core-libart.jar:/system/framework/conscrypt.jar:/system/framework/bouncycastle.jar -Xnodex2oat -Xnoimage-dex2oat -cp BootSignature_Android.jar com.android.verity.BootSignature /boot boot-new.img $pk8 $cert boot-new-signed.img;
+    /system/bin/dalvikvm -Xbootclasspath:/system/framework/core-oj.jar:/system/framework/core-libart.jar:/system/framework/conscrypt.jar:/system/framework/bouncycastle.jar -Xnodex2oat -Xnoimage-dex2oat -cp $bin/BootSignature_Android.jar com.android.verity.BootSignature /boot boot-new.img $pk8 $cert boot-new-signed.img;
     if [ $? != 0 ]; then
       ui_print " "; ui_print "Signing image failed. Aborting..."; exit 1;
     fi;

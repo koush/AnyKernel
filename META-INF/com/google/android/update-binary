@@ -17,8 +17,8 @@ set_perm_recursive() {
   dirs=$(echo $* | $bb awk '{ print substr($0, index($0,$5)) }');
   for i in $dirs; do
     $bb chown -R $1:$2 $i;
-    find "$i" -type d -exec chmod $3 {} +;
-    find "$i" -type f -exec chmod $4 {} +;
+    $bb find "$i" -type d -exec chmod $3 {} +;
+    $bb find "$i" -type f -exec chmod $4 {} +;
   done;
 }
 file_getprop() { grep "^$2" "$1" | cut -d= -f2; }
@@ -41,8 +41,9 @@ unzip -o "$ZIPFILE";
 if [ $? != 0 -o -z "$(ls /tmp/anykernel/tools)" ]; then
   abort "Unzip failed. Aborting...";
 fi;
-chmod -R 755 /tmp/anykernel/tools /tmp/anykernel/bin;
 bb=/tmp/anykernel/tools/busybox;
+chmod 755 $bb;
+$bb chmod -R 755 /tmp/anykernel/tools /tmp/anykernel/bin;
 
 ui_print "$(file_getprop /tmp/anykernel/anykernel.sh kernel.string)";
 ui_print " ";
@@ -84,7 +85,7 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.modules)" == 1 ]; then
   ui_print " ";
   ui_print "Pushing modules...";
   mount -o rw,remount -t auto /system;
-  cp -rLf /tmp/anykernel/modules/* $root/system/lib/modules/;
+  $bb cp -rLf /tmp/anykernel/modules/* $root/system/lib/modules/;
   set_perm_recursive 0 0 0755 0644 $root/system/lib/modules;
   chcon -R 'u:object_r:system_file:s0' $root/system/lib/modules;
   mount -o ro,remount -t auto /system;
@@ -103,6 +104,6 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.cleanup)" == 1 ]; then
 fi;
 
 umount /system;
-umount /data;
+umount /data 2>/dev/null;
 ui_print " ";
 ui_print "Done!";

@@ -193,7 +193,7 @@ write_boot() {
   if [ -f "$bin/BootSignature_Android.jar" -a -d "$bin/avb" ]; then
     if [ -f "/system/system/bin/dalvikvm" ]; then
       umount /system;
-      umount /system;
+      umount /system 2>/dev/null;
       mkdir /system_root;
       mount -o ro -t auto /dev/block/bootdevice/by-name/system$slot /system_root;
       mount -o bind /system_root/system /system;

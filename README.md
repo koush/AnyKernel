@@ -74,13 +74,14 @@ https://forum.xda-developers.com/showthread.php?t=2239421 (Odds and Ends thread)
 Optional supported binaries which may be placed in /tools to enable built-in expanded functionality are as follows:
 * `mkbootfs` - for broken recoveries, or, booted flash support for a script or app via bind mounting to a /tmp directory
 * `flash_erase`, `nanddump`, `nandwrite` - MTD block device support for devices where the `dd` command is not sufficient
-* `pxa1088-unpackbootimg`, `pxa1088-mkbootimg` - Samsung/Marvell PXA1088 boot.img format variant support
+* `pxa-unpackbootimg`, `pxa-mkbootimg` - Samsung/Marvell PXA1088/PXA1908 boot.img format variant support
 * `dumpimage`, `mkimage` - DENX U-Boot uImage format support
 * `unpackelf` - Sony ELF kernel.elf format support, repacking as AOSP standard boot.img for unlocked bootloaders
 * `mkmtkhdr` - MTK device boot image section headers support
 * `futility` + `chromeos` test keys directory - Google ChromeOS signature support
 * `BootSignature_Android.jar` + `avb` keys directory - Google Android Verified Boot (AVB) signature support
 * `blobpack` - Asus SignBlob signature support
+* `dhtbsign` - Samsung/Spreadtrum DHTB signature support
 
 ## // Instructions ##
 

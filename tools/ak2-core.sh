@@ -226,7 +226,11 @@ write_boot() {
     fi;
   fi;
   if [ "$(strings /tmp/anykernel/boot.img | grep SEANDROIDENFORCE )" ]; then
-    printf 'SEANDROIDENFORCE' >> /tmp/anykernel/boot-new.img;
+    printf 'SEANDROIDENFORCE' >> boot-new.img;
+  fi;
+  if [ -f "$bin/dhtbsign" ]; then
+    $bin/dhtbsign -i boot-new.img -o boot-new-signed.img;
+    mv -f boot-new-signed.img boot-new.img;
   fi;
   if [ -f "$bin/flash_erase" -a -f "$bin/nandwrite" ]; then
     $bin/flash_erase $block 0 0;

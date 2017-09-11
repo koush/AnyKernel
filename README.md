@@ -82,6 +82,7 @@ Optional supported binaries which may be placed in /tools to enable built-in exp
 * `BootSignature_Android.jar` + `avb` keys directory - Google Android Verified Boot (AVB) signature support
 * `blobpack` - Asus SignBlob signature support
 * `dhtbsign` - Samsung/Spreadtrum DHTB signature support
+* `rkcrc` - Rockchip KRNL ramdisk image support
 
 ## // Instructions ##
 

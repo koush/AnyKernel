@@ -55,8 +55,8 @@ dump_boot() {
     else
       dumpfail=1;
     fi;
-  elif [ -f "$bin/pxa1088-unpackbootimg" ]; then
-    $bin/pxa1088-unpackbootimg -i /tmp/anykernel/boot.img -o $split_img;
+  elif [ -f "$bin/pxa-unpackbootimg" ]; then
+    $bin/pxa-unpackbootimg -i /tmp/anykernel/boot.img -o $split_img;
   else
     $bin/unpackbootimg -i /tmp/anykernel/boot.img -o $split_img;
   fi;
@@ -173,8 +173,8 @@ write_boot() {
   fi;
   if [ -f "$bin/mkimage" ]; then
     $bin/mkimage -A $arch -O $os -T $type -C $comp -a $addr -e $ep -n "$name" -d $kernel:$ramdisk boot-new.img;
-  elif [ -f "$bin/pxa1088-mkbootimg" ]; then
-    $bin/pxa1088-mkbootimg --kernel $kernel --ramdisk ramdisk-new.cpio.gz $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset "$tagsoff" --unknown $unknown $dtb --output boot-new.img;
+  elif [ -f "$bin/pxa-mkbootimg" ]; then
+    $bin/pxa-mkbootimg --kernel $kernel --ramdisk ramdisk-new.cpio.gz $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset "$tagsoff" --unknown $unknown $dtb --output boot-new.img;
   else
     $bin/mkbootimg --kernel $kernel --ramdisk ramdisk-new.cpio.gz $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset "$tagsoff" --os_version "$osver" --os_patch_level "$oslvl" $hash $dtb --output boot-new.img;
   fi;

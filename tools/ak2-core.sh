@@ -8,15 +8,6 @@ patch=/tmp/anykernel/patch;
 chmod -R 755 $bin;
 mkdir -p $ramdisk $split_img;
 
-if [ "$is_slot_device" == 1 ]; then
-  slot=$(getprop ro.boot.slot_suffix 2>/dev/null);
-  test ! "$slot" && slot=$(grep -o 'androidboot.slot_suffix=.*$' /proc/cmdline | cut -d\  -f1 | cut -d= -f2);
-  test "$slot" && block=$block$slot;
-  if [ $? != 0 -o ! -e "$block" ]; then
-    ui_print " "; ui_print "Unable to determine active boot slot. Aborting..."; exit 1;
-  fi;
-fi;
-
 OUTFD=/proc/self/fd/$1;
 
 # ui_print <text>
@@ -399,6 +390,16 @@ patch_prop() {
     sed -i "${line}s;.*;${2}=${3};" $1;
   fi;
 }
+
+# slot detection enabled by is_slot_device=1 (from anykernel.sh)
+if [ "$is_slot_device" == 1 ]; then
+  slot=$(getprop ro.boot.slot_suffix 2>/dev/null);
+  test ! "$slot" && slot=$(grep -o 'androidboot.slot_suffix=.*$' /proc/cmdline | cut -d\  -f1 | cut -d= -f2);
+  test "$slot" && block=$block$slot;
+  if [ $? != 0 -o ! -e "$block" ]; then
+    ui_print " "; ui_print "Unable to determine active boot slot. Aborting..."; exit 1;
+  fi;
+fi;
 
 ## end methods
 

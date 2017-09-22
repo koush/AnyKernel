@@ -24,12 +24,24 @@ set_perm_recursive() {
 file_getprop() { grep "^$2" "$1" | cut -d= -f2; }
 getprop() { test -e /sbin/getprop && /sbin/getprop $1 || file_getprop /default.prop $1; }
 cleanup() { rm -rf /tmp/anykernel; }
+debugging() {
+  case $(basename "$ZIPFILE" .zip) in
+    *-debugging)
+      ui_print " ";
+      ui_print "Creating debugging archive in zip directory...";
+      $bb tar -czvf "$DIR/anykernel2-$(date +%Y-%m-%d_%H%M%S)-debug.tgz" /tmp/*;
+    ;;
+  esac;
+}
 abort() {
+  ui_print "$*";
+  debugging;
   if [ ! -f /tmp/anykernel/anykernel.sh -o "$(file_getprop /tmp/anykernel/anykernel.sh do.cleanuponabort 2>/dev/null)" == 1 ]; then
-    ui_print "$*"; cleanup; umount /system; umount /data; exit 1;
-  else
-    ui_print "$*"; umount /system; umount /data; exit 1;
+    cleanup;
   fi;
+  umount /system;
+  umount /data 2>/dev/null;
+  exit 1;
 }
 
 show_progress 1.34 4;
@@ -91,13 +103,7 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.modules)" == 1 ]; then
   mount -o ro,remount -t auto /system;
 fi;
 
-case $(basename "$ZIPFILE" .zip) in
-  *-debugging)
-    ui_print " ";
-    ui_print "Creating debugging archive in zip directory...";
-    $bb tar -czvf "$DIR/anykernel2-$(date +%Y-%m-%d_%H%M%S)-debug.tgz" /tmp/*;
-  ;;
-esac;
+debugging;
 
 if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.cleanup)" == 1 ]; then
   cleanup;

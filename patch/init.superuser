@@ -1,4 +1,0 @@
-# SuperSU daemonsu
-service daemonsu /system/xbin/daemonsu --auto-daemon
-    user root
-    group root

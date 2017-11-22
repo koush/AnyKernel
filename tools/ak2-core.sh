@@ -76,21 +76,20 @@ dump_boot() {
   fi;
   mv -f $ramdisk /tmp/anykernel/rdtmp;
   case $(od -ta -An -N4 $split_img/boot.img-ramdisk.gz) in
-    '  us  vt'*|'  us  rs'*) rdcomp="gzip"; compext="gz";;
-    '  ht   L   Z   O') rdcomp="lzop"; compext="lzo";;
-    '   ] nul nul nul') rdcomp="lzma"; compext="lzma"; unpackcmd="$bin/xz -dc";;
-    '   }   7   z   X') rdcomp="xz"; compext="xz"; unpackcmd="$bin/xz -dc";;
-    '   B   Z   h'*) rdcomp="bzip2"; compext="bz2";;
-    ' stx   !   L can') rdcomp="lz4-l"; compext="lz4-l"; unpackcmd="$bin/lz4 -dc";;
-    ' etx   !   L can'|' eot   "   M can') rdcomp="lz4"; compext="lz4"; unpackcmd="$bin/lz4 -dc";;
+    '  us  vt'*|'  us  rs'*) compext="gz"; unpackcmd="gzip";;
+    '  ht   L   Z   O') compext="lzo"; unpackcmd="lzop";;
+    '   ] nul nul nul') compext="lzma"; unpackcmd="$bin/xz";;
+    '   }   7   z   X') compext="xz"; unpackcmd="$bin/xz";;
+    '   B   Z   h'*) compext="bz2"; unpackcmd="bzip2";;
+    ' stx   !   L can') compext="lz4-l"; unpackcmd="$bin/lz4";;
+    ' etx   !   L can'|' eot   "   M can') compext="lz4"; unpackcmd="$bin/lz4";;
     *) ui_print " "; ui_print "Unknown ramdisk compression. Aborting..."; exit 1;;
   esac;
-  test ! "$unpackcmd" && unpackcmd="$rdcomp -dc";
   mv -f $split_img/boot.img-ramdisk.gz $split_img/boot.img-ramdisk.cpio.$compext;
   mkdir -p $ramdisk;
   chmod 755 $ramdisk;
   cd $ramdisk;
-  $unpackcmd $split_img/boot.img-ramdisk.cpio.$compext | cpio -i -d;
+  $unpackcmd -dc $split_img/boot.img-ramdisk.cpio.$compext | cpio -i -d;
   if [ $? != 0 -o -z "$(ls $ramdisk)" ]; then
     ui_print " "; ui_print "Unpacking ramdisk failed. Aborting..."; exit 1;
   fi;

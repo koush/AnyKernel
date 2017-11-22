@@ -66,7 +66,7 @@ You may also use _ui_print "\<text\>"_ to write messages back to the recovery du
 
 ## // Binary Inclusion ##
 
-The AK2 repo includes my latest static ARM builds of `mkbootimg`, `unpackbootimg` and `busybox` by default to keep the basic package small. Builds for other architectures and optional binaries (see below) are available from my latest AIK-mobile and FlashIt packages, respectively, here:
+The AK2 repo includes my latest static ARM builds of `mkbootimg`, `unpackbootimg`,`busybox`, `xz` and `lz4` by default to keep the basic package small. Builds for other architectures and optional binaries (see below) are available from my latest AIK-mobile and FlashIt packages, respectively, here:
 
 https://forum.xda-developers.com/showthread.php?t=2073775 (Android Image Kitchen thread)  
 https://forum.xda-developers.com/showthread.php?t=2239421 (Odds and Ends thread)

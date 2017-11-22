@@ -164,7 +164,10 @@ write_boot() {
     dtb=`ls *-dtb`;
     dtb="--dt $split_img/$dtb";
   fi;
-  compext=`echo $split_img/boot.img-ramdisk.cpio.* | rev | cut -d. -f1 | rev`;
+  case $ramdisk_compression in
+    auto|"") compext=`echo $split_img/boot.img-ramdisk.cpio.* | rev | cut -d. -f1 | rev`;;
+    *) compext=$ramdisk_compression;;
+  esac;
   case $compext in
     gz) repackcmd="gzip";;
     lzo) repackcmd="lzo";;

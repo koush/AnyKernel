@@ -75,10 +75,22 @@ dump_boot() {
     esac;
   fi;
   mv -f $ramdisk /tmp/anykernel/rdtmp;
+  case $(od -ta -An -N4 $split_img/boot.img-ramdisk.gz) in
+    '  us  vt'*|'  us  rs'*) rdcomp="gzip"; compext="gz";;
+    '  ht   L   Z   O') rdcomp="lzop"; compext="lzo";;
+    '   ] nul nul nul') rdcomp="lzma"; compext="lzma"; unpackcmd="$bin/xz -dc";;
+    '   }   7   z   X') rdcomp="xz"; compext="xz"; unpackcmd="$bin/xz -dc";;
+    '   B   Z   h'*) rdcomp="bzip2"; compext="bz2";;
+    ' stx   !   L can') rdcomp="lz4-l"; compext="lz4-l"; unpackcmd="$bin/lz4 -dc";;
+    ' etx   !   L can'|' eot   "   M can') rdcomp="lz4"; compext="lz4"; unpackcmd="$bin/lz4 -dc";;
+    *) ui_print " "; ui_print "Unknown ramdisk compression. Aborting..."; exit 1;;
+  esac;
+  test ! "$unpackcmd" && unpackcmd="$rdcomp -dc";
+  mv -f $split_img/boot.img-ramdisk.gz $split_img/boot.img-ramdisk.cpio.$compext;
   mkdir -p $ramdisk;
   chmod 755 $ramdisk;
   cd $ramdisk;
-  gunzip -c $split_img/boot.img-ramdisk.gz | cpio -i -d;
+  $unpackcmd $split_img/boot.img-ramdisk.cpio.$compext | cpio -i -d;
   if [ $? != 0 -o -z "$(ls $ramdisk)" ]; then
     ui_print " "; ui_print "Unpacking ramdisk failed. Aborting..."; exit 1;
   fi;
@@ -152,11 +164,21 @@ write_boot() {
     dtb=`ls *-dtb`;
     dtb="--dt $split_img/$dtb";
   fi;
+  compext=`echo $split_img/boot.img-ramdisk.cpio.* | rev | cut -d. -f1 | rev`;
+  case $compext in
+    gz) repackcmd="gzip";;
+    lzo) repackcmd="lzo";;
+    lzma) repackcmd="$bin/xz -Flzma";;
+    xz) repackcmd="$bin/xz -Ccrc32";;
+    bz2) repackcmd="bzip2";;
+    lz4-l) repackcmd="$bin/lz4 -l";;
+    lz4) repackcmd="$bin/lz4";;
+  esac;
   if [ -f "$bin/mkbootfs" ]; then
-    $bin/mkbootfs $ramdisk | gzip > /tmp/anykernel/ramdisk-new.cpio.gz;
+    $bin/mkbootfs $ramdisk | $repackcmd -9c > /tmp/anykernel/ramdisk-new.cpio.$compext;
   else
     cd $ramdisk;
-    find . | cpio -H newc -o | gzip > /tmp/anykernel/ramdisk-new.cpio.gz;
+    find . | cpio -H newc -o | $repackcmd -9c > /tmp/anykernel/ramdisk-new.cpio.$compext;
   fi;
   if [ $? != 0 ]; then
     ui_print " "; ui_print "Repacking ramdisk failed. Aborting..."; exit 1;

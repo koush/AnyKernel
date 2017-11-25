@@ -31,7 +31,7 @@ ramdisk_compression=auto;
 # set permissions/ownership for included ramdisk files
 chmod -R 750 $ramdisk/*;
 chmod 644 $ramdisk/sbin/media_profiles.xml;
-chmod -R root:root $ramdisk/*;
+chown -R root:root $ramdisk/*;
 
 
 ## AnyKernel install

@@ -30,7 +30,6 @@ ramdisk_compression=auto;
 ## AnyKernel file attributes
 # set permissions/ownership for included ramdisk files
 chmod -R 750 $ramdisk/*;
-chmod 644 $ramdisk/sbin/media_profiles.xml;
 chown -R root:root $ramdisk/*;
 
 

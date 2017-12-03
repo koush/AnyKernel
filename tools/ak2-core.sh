@@ -93,7 +93,7 @@ dump_boot() {
   if [ $? != 0 -o -z "$(ls $ramdisk)" ]; then
     ui_print " "; ui_print "Unpacking ramdisk failed. Aborting..."; exit 1;
   fi;
-  cp -af /tmp/anykernel/rdtmp/* $ramdisk;
+  test ! -z "$(ls /tmp/anykernel/rdtmp)" && cp -af /tmp/anykernel/rdtmp/* $ramdisk;
 }
 
 # repack ramdisk then build and write image
@@ -187,21 +187,21 @@ write_boot() {
   fi;
   cd /tmp/anykernel;
   if [ -f "$bin/mkmtkhdr" ]; then
-    $bin/mkmtkhdr --rootfs ramdisk-new.cpio.gz;
-    mv -f ramdisk-new.cpio.gz-mtk ramdisk-new.cpio.gz;
+    $bin/mkmtkhdr --rootfs ramdisk-new.cpio.$compext;
+    mv -f ramdisk-new.cpio.$compext-mtk ramdisk-new.cpio.$compext;
     case $kernel in
       $split_img/*) ;;
       *) $bin/mkmtkhdr --kernel $kernel; kernel=$kernel-mtk;;
     esac;
   fi;
   if [ -f "$bin/mkimage" ]; then
-    $bin/mkimage -A $arch -O $os -T $type -C $comp -a $addr -e $ep -n "$name" -d $kernel:$ramdisk boot-new.img;
+    $bin/mkimage -A $arch -O $os -T $type -C $comp -a $addr -e $ep -n "$name" -d $kernel:ramdisk-new.cpio.$compext boot-new.img;
   elif [ -f "$bin/rkcrc" ]; then
-    $bin/rkcrc -k ramdisk-new.cpio.gz boot-new.img;
+    $bin/rkcrc -k ramdisk-new.cpio.$compext boot-new.img;
   elif [ -f "$bin/pxa-mkbootimg" ]; then
-    $bin/pxa-mkbootimg --kernel $kernel --ramdisk ramdisk-new.cpio.gz $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset "$tagsoff" --unknown $unknown $dtb --output boot-new.img;
+    $bin/pxa-mkbootimg --kernel $kernel --ramdisk ramdisk-new.cpio.$compext $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset "$tagsoff" --unknown $unknown $dtb --output boot-new.img;
   else
-    $bin/mkbootimg --kernel $kernel --ramdisk ramdisk-new.cpio.gz $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset "$tagsoff" --os_version "$osver" --os_patch_level "$oslvl" $hash $dtb --output boot-new.img;
+    $bin/mkbootimg --kernel $kernel --ramdisk ramdisk-new.cpio.$compext $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset "$tagsoff" --os_version "$osver" --os_patch_level "$oslvl" $hash $dtb --output boot-new.img;
   fi;
   if [ $? != 0 ]; then
     ui_print " "; ui_print "Repacking image failed. Aborting..."; exit 1;

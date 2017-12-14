@@ -40,6 +40,8 @@ __do.cleanuponabort=0__ will keep the zip from removing it's working directory i
 ## // Command Methods ##
 ```
 dump_boot
+split_boot
+unpack_ramdisk
 backup_file <file>
 replace_string <file> <if search string> <original string> <replacement string>
 replace_section <file> <begin search string> <end search string> <replacement string>
@@ -54,6 +56,8 @@ replace_file <file> <permissions> <patch file>
 patch_fstab <fstab file> <mount match name> <fs match type> <block|mount|fstype|options|flags> <original string> <replacement string>
 patch_cmdline <cmdline match string> [<replacement string>]
 patch_prop <prop file> <prop name> <new prop value>
+repack_ramdisk
+flash_boot
 write_boot
 ```
 
@@ -64,6 +68,8 @@ Similarly, __"line match string"__ and __"line replace string"__ are the search 
 __"before|after"__ requires you simply specify __"before"__ or __"after"__ for the placement of the inserted line, in relation to __"line match string"__.
 
 __"block|mount|fstype|options|flags"__ requires you specify which part (listed in order) of the fstab entry you want to check and alter.
+
+_dump_boot_ and _write_boot_ are the default method of unpacking/repacking, but for more granular control, or omitting ramdisk changes entirely ("OG AK" mode), these can be separated into _split_boot; unpack_ramdisk_ and _repack_ramdisk; flash_boot_ respectively.
 
 You may also use _ui_print "\<text\>"_ to write messages back to the recovery during the modification process, and _contains "\<string\>" "\<substring\>"_ to simplify string testing logic you might want in your script.
 

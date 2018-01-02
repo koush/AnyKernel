@@ -13,14 +13,6 @@ ui_print() {
   done;
 }
 show_progress() { echo "progress $1 $2" > $OUTFD; }
-set_perm_recursive() {
-  dirs=$(echo $* | $bb awk '{ print substr($0, index($0,$5)) }');
-  for i in $dirs; do
-    $bb chown -R $1:$2 $i;
-    $bb find "$i" -type d -exec chmod $3 {} +;
-    $bb find "$i" -type f -exec chmod $4 {} +;
-  done;
-}
 file_getprop() { grep "^$2=" "$1" | cut -d= -f2; }
 getprop() { test -e /sbin/getprop && /sbin/getprop $1 || file_getprop /default.prop $1; }
 cleanup() { rm -rf /tmp/anykernel; }
@@ -63,6 +55,7 @@ ui_print "AnyKernel2 by osm0sis @ xda-developers";
 ui_print " ";
 umount /system 2>/dev/null;
 mount -o ro -t auto /system;
+mount -o ro -t auto /vendor 2>/dev/null;
 mount /data 2>/dev/null;
 test -f /system/system/build.prop && root=/system;
 
@@ -97,10 +90,21 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.modules)" == 1 ]; then
   ui_print " ";
   ui_print "Pushing modules...";
   mount -o rw,remount -t auto /system;
-  $bb cp -rLf /tmp/anykernel/modules/* $root/system/lib/modules/;
-  set_perm_recursive 0 0 0755 0644 $root/system/lib/modules;
-  chcon -R 'u:object_r:system_file:s0' $root/system/lib/modules;
+  mount -o rw,remount -t auto /vendor 2>/dev/null;
+  cd /tmp/anykernel/modules;
+  for module in $(find . -name '*.ko'); do
+    $bb cp -rLf $module /$module;
+    $bb chown 0:0 /$module;
+    $bb chmod 644 /$module;
+    case $module in
+      */vendor/*) mod=vendor;;
+      *) mod=system;;
+    esac;
+    chcon "u:object_r:${mod}_file:s0" /$module;
+  done;
+  cd /tmp/anykernel;
   mount -o ro,remount -t auto /system;
+  mount -o ro,remount -t auto /vendor 2>/dev/null;
 fi;
 
 debugging;

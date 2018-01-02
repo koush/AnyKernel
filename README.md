@@ -27,7 +27,7 @@ ramdisk_compression=auto;
 
 __do.devicecheck=1__ specified requires at least device.name1 to be present. This should match ro.product.device or ro.build.product for your device. There is support for up to 5 device.name# properties.
 
-__do.modules=1__ will push the contents of the module directory to /system/lib/modules/ and apply 644 permissions.
+__do.modules=1__ will push the contents of the module directory to the same location relative to root (/) and apply 644 permissions.
 
 __do.cleanup=0__ will keep the zip from removing it's working directory in /tmp/anykernel - this can be useful if trying to debug in adb shell whether the patches worked correctly.
 
@@ -97,7 +97,7 @@ Optional supported binaries which may be placed in /tools to enable built-in exp
 
 1. Place zImage in the root (dtb and/or dtbo should also go here for devices that require custom ones, each will fallback to the original if not included)
 
-2. Place any required ramdisk files in /ramdisk, and modules in /modules
+2. Place any required ramdisk files in /ramdisk and modules in /modules (with the full path like /modules/system/lib/modules)
 
 3. Place any required patch files (generally partial files which go with commands) in /patch
 

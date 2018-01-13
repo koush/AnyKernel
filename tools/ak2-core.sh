@@ -32,6 +32,11 @@ split_boot() {
     dd bs=1048576 skip=1 conv=notrunc if=/tmp/anykernel/boot-orig.img of=/tmp/anykernel/boot.img;
   fi;
   if [ -f "$bin/unpackelf" -a "$($bin/unpackelf -i /tmp/anykernel/boot.img -h -q 2>/dev/null; echo $?)" == 0 ]; then
+    if [ -f "$bin/elftool" ]; then
+      mkdir $split_img/elftool_out;
+      $bin/elftool unpack -i /tmp/anykernel/boot.img -o $split_img/elftool_out;
+      cp -f $split_img/elftool_out/header $split_img/boot.img-header;
+    fi;
     $bin/unpackelf -i /tmp/anykernel/boot.img -o $split_img;
     mv -f $split_img/boot.img-ramdisk.cpio.gz $split_img/boot.img-ramdisk.gz;
   elif [ -f "$bin/dumpimage" ]; then
@@ -197,12 +202,14 @@ flash_boot() {
   for i in dtb dt.img; do
     if [ -f /tmp/anykernel/$i ]; then
       dtb="--dt /tmp/anykernel/$i";
+      rpm="/tmp/anykernel/$i,rpm";
       break;
     fi;
   done;
   if [ ! "$dtb" -a -f *-dtb ]; then
     dtb=`ls *-dtb`;
     dtb="--dt $split_img/$dtb";
+    rpm="$split_img/$dtb,rpm";
   fi;
   cd /tmp/anykernel;
   if [ -f "$bin/mkmtkhdr" ]; then
@@ -213,6 +220,8 @@ flash_boot() {
   fi;
   if [ -f "$bin/mkimage" ]; then
     $bin/mkimage -A $arch -O $os -T $type -C $comp -a $addr -e $ep -n "$name" -d $kernel:$rd boot-new.img;
+  elif [ -f "$bin/elftool" ]; then
+    $bin/elftool pack -o boot-new.img header=$split_img/boot.img-header $kernel $rd,ramdisk $rpm $split_img/boot.img-cmdline@cmdline;
   elif [ -f "$bin/rkcrc" ]; then
     $bin/rkcrc -k $rd boot-new.img;
   elif [ -f "$bin/pxa-mkbootimg" ]; then

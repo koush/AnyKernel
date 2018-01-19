@@ -460,7 +460,7 @@ patch_fstab() {
   fi;
 }
 
-# patch_cmdline <cmdline match string> <replacement string>
+# patch_cmdline <cmdline entry name> <replacement string>
 patch_cmdline() {
   cmdfile=`ls $split_img/*-cmdline`;
   if [ -z "$(grep "$1" $cmdfile)" ]; then

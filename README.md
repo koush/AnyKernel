@@ -54,14 +54,15 @@ insert_file <file> <if search string> <before|after> <line match string> <patch 
 append_file <file> <if search string> <patch file>
 replace_file <file> <permissions> <patch file>
 patch_fstab <fstab file> <mount match name> <fs match type> <block|mount|fstype|options|flags> <original string> <replacement string>
-patch_cmdline <cmdline match string> [<replacement string>]
+patch_cmdline <cmdline entry name> <replacement string>
 patch_prop <prop file> <prop name> <new prop value>
 repack_ramdisk
 flash_boot
 write_boot
+reset_ak
 ```
 
-__"if search string"__ is the string it looks for to decide whether it needs to add the tweak or not, so generally something to indicate the tweak already exists. __"cmdline match string"__ behaves somewhat like this while also being the new cmdline addition for the _patch_cmdline_ function. __"prop name"__ also serves as a match check for a property in the given prop file, but is only the prop name as the prop value is specified separately.
+__"if search string"__ is the string it looks for to decide whether it needs to add the tweak or not, so generally something to indicate the tweak already exists. __"cmdline entry name"__ behaves somewhat like this as a match check for the name of the cmdline entry to be changed/added by the _patch_cmdline_ function, followed by the full entry to replace it. __"prop name"__ also serves as a match check in _patch_prop_ for a property in the given prop file, but is only the prop name as the prop value is specified separately.
 
 Similarly, __"line match string"__ and __"line replace string"__ are the search strings that locate where the modification needs to be made for those commands, __"begin search string"__ and __"end search string"__ are both required to select the first and last lines of the script block to be replaced for _replace_section_, and __"mount match name"__ and __"fs match type"__ are both required to narrow the _patch_fstab_ command down to the correct entry.
 

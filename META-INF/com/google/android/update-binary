@@ -14,7 +14,13 @@ ui_print() {
 }
 show_progress() { echo "progress $1 $2" > $OUTFD; }
 file_getprop() { grep "^$2=" "$1" | cut -d= -f2; }
-getprop() { test -e /sbin/getprop && /sbin/getprop $1 || file_getprop /default.prop $1; }
+if [ ! "$(getprop 2>/dev/null)" ]; then
+  getprop() {
+    local propval="$(file_getprop /default.prop $1 2>/dev/null)";
+    test "$propval" || local propval="$(file_getprop /system/build.prop $1 2>/dev/null)";
+    test "$propval" && echo "$propval" || echo "";
+  }
+fi;
 cleanup() { rm -rf /tmp/anykernel; }
 debugging() {
   case $(basename "$ZIPFILE" .zip) in

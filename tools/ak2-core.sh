@@ -214,8 +214,8 @@ flash_boot() {
   done;
   if [ ! "$dtb" -a -f *-dtb ]; then
     dtb=`ls *-dtb`;
-    dtb="--dt $split_img/$dtb";
     rpm="$split_img/$dtb,rpm";
+    dtb="--dt $split_img/$dtb";
   fi;
   cd /tmp/anykernel;
   if [ -f "$bin/mkmtkhdr" ]; then

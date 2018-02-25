@@ -38,6 +38,7 @@ abort() {
     cleanup;
   fi;
   umount /system;
+  umount /vendor 2>/dev/null;
   umount /data 2>/dev/null;
   exit 1;
 }
@@ -60,6 +61,7 @@ ui_print " ";
 ui_print "AnyKernel2 by osm0sis @ xda-developers";
 ui_print " ";
 umount /system 2>/dev/null;
+umount /vendor 2>/dev/null;
 mount -o ro -t auto /system;
 mount -o ro -t auto /vendor 2>/dev/null;
 mount /data 2>/dev/null;
@@ -124,6 +126,7 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.cleanup)" == 1 ]; then
 fi;
 
 umount /system;
+umount /vendor 2>/dev/null;
 umount /data 2>/dev/null;
 ui_print " ";
 ui_print "Done!";

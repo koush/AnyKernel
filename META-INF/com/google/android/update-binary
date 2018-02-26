@@ -73,6 +73,8 @@ fi;
 ui_print " ";
 ui_print "AnyKernel2 by osm0sis @ xda-developers";
 ui_print " ";
+ui_print " ";
+
 umount /system 2>/dev/null;
 umount /vendor 2>/dev/null;
 mount -o ro -t auto /system;
@@ -141,5 +143,6 @@ fi;
 umount /system;
 umount /vendor 2>/dev/null;
 umount /data 2>/dev/null;
+ui_print " ";
 ui_print " ";
 ui_print "Done!";

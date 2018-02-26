@@ -56,6 +56,14 @@ bb=/tmp/anykernel/tools/busybox;
 chmod 755 $bb;
 $bb chmod -R 755 /tmp/anykernel/tools /tmp/anykernel/bin;
 
+if [ -f /tmp/anykernel/banner ]; then
+  while IFS='' read -r line || $bb [[ -n "$line" ]]; do
+    ui_print "$line";
+  done < /tmp/anykernel/banner;
+  ui_print " ";
+  ui_print " ";
+fi;
+
 ui_print "$(file_getprop /tmp/anykernel/anykernel.sh kernel.string)";
 ui_print " ";
 ui_print "AnyKernel2 by osm0sis @ xda-developers";

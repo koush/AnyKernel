@@ -102,7 +102,7 @@ unpack_ramdisk() {
   mkdir -p $ramdisk;
   chmod 755 $ramdisk;
   cd $ramdisk;
-  $unpackcmd -dc $split_img/boot.img-ramdisk.cpio.$compext | cpio -i -d;
+  $unpackcmd -dc $split_img/boot.img-ramdisk.cpio.$compext | EXTRACT_UNSAFE_SYMLINKS=1 cpio -i -d;
   if [ $? != 0 -o -z "$(ls $ramdisk)" ]; then
     ui_print " "; ui_print "Unpacking ramdisk failed. Aborting..."; exit 1;
   fi;

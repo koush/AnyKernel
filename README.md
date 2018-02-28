@@ -107,7 +107,7 @@ Optional supported binaries which may be placed in /tools to enable built-in exp
 
 3. Place any required patch files (generally partial files which go with commands) in /patch
 
-4. Modify the anykernel.sh to add your kernel's name, boot partition location, permissions for included ramdisk files, and use methods for any required ramdisk modifications
+4. Modify the anykernel.sh to add your kernel's name, boot partition location, permissions for included ramdisk files, and use methods for any required ramdisk modifications (optionally, also place banner and/or version files in the root to have these displayed during flash)
 
 5. `zip -r9 UPDATE-AnyKernel2.zip * -x README UPDATE-AnyKernel2.zip`
 

@@ -33,10 +33,15 @@ split_boot() {
   else
     dd if=$block of=/tmp/anykernel/boot.img;
   fi;
-  if [ "$(strings /tmp/anykernel/boot.img | grep -E 'Green Loader|Green Recovery')" ]; then
+  nooktest=$(strings /tmp/anykernel/boot.img | grep -E 'Red Loader|Green Loader|Green Recovery|eMMC boot.img|eMMC recovery.img|BauwksBoot');
+  if [ "$nooktest" ]; then
+    case $nooktest in
+      *BauwksBoot*) nookoff=262144;;
+      *) nookoff=1048576;;
+    esac;
     mv -f /tmp/anykernel/boot.img /tmp/anykernel/boot-orig.img;
-    dd bs=1048576 count=1 conv=notrunc if=/tmp/anykernel/boot-orig.img of=$split_img/boot.img-master_boot.key;
-    dd bs=1048576 skip=1 conv=notrunc if=/tmp/anykernel/boot-orig.img of=/tmp/anykernel/boot.img;
+    dd bs=$nookoff count=1 conv=notrunc if=/tmp/anykernel/boot-orig.img of=$split_img/boot.img-master_boot.key;
+    dd bs=$nookoff skip=1 conv=notrunc if=/tmp/anykernel/boot-orig.img of=/tmp/anykernel/boot.img;
   fi;
   if [ -f "$bin/unpackelf" -a "$($bin/unpackelf -i /tmp/anykernel/boot.img -h -q 2>/dev/null; echo $?)" == 0 ]; then
     if [ -f "$bin/elftool" ]; then

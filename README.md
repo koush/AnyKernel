@@ -72,7 +72,7 @@ __"block|mount|fstype|options|flags"__ requires you specify which part (listed i
 
 _dump_boot_ and _write_boot_ are the default method of unpacking/repacking, but for more granular control, or omitting ramdisk changes entirely ("OG AK" mode), these can be separated into _split_boot; unpack_ramdisk_ and _repack_ramdisk; flash_boot_ respectively.
 
-You may also use _ui_print "\<text\>"_ to write messages back to the recovery during the modification process, and _contains "\<string\>" "\<substring\>"_ to simplify string testing logic you might want in your script.
+You may also use _ui_print "\<text\>"_ to write messages back to the recovery during the modification process, and _file_getprop "\<file\>" "\<property\>"_ and _contains "\<string\>" "\<substring\>"_ to simplify string testing logic you might want in your script.
 
 ## // Binary Inclusion ##
 

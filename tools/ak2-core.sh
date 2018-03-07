@@ -243,8 +243,6 @@ flash_boot() {
   fi;
   if [ $? != 0 ]; then
     ui_print " "; ui_print "Repacking image failed. Aborting..."; exit 1;
-  elif [ "$(wc -c < boot-new.img)" -gt "$(wc -c < boot.img)" ]; then
-    ui_print " "; ui_print "New image larger than boot partition. Aborting..."; exit 1;
   fi;
   if [ -f "$bin/futility" -a -d "$bin/chromeos" ]; then
     $bin/futility vbutil_kernel --pack boot-new-signed.img --keyblock $bin/chromeos/kernel.keyblock --signprivate $bin/chromeos/kernel_data_key.vbprivk --version 1 --vmlinuz boot-new.img --bootloader $bin/chromeos/empty --config $bin/chromeos/empty --arch arm --flags 0x1;
@@ -307,6 +305,8 @@ flash_boot() {
   fi;
   if [ ! -f /tmp/anykernel/boot-new.img ]; then
     ui_print " "; ui_print "Repacked image could not be found. Aborting..."; exit 1;
+  elif [ "$(wc -c < boot-new.img)" -gt "$(wc -c < boot.img)" ]; then
+    ui_print " "; ui_print "New image larger than boot partition. Aborting..."; exit 1;
   fi;
   if [ -f "$bin/flash_erase" -a -f "$bin/nandwrite" ]; then
     $bin/flash_erase $block 0 0;
@@ -354,7 +354,7 @@ replace_string() {
 replace_section() {
   begin=`grep -n "$2" $1 | head -n1 | cut -d: -f1`;
   for end in `grep -n "$3" $1 | cut -d: -f1`; do
-    if [ "$begin" -lt "$end" ]; then
+    if [ "$begin" -a "$end" ] && [ "$begin" -lt "$end" ]; then
       if [ "$3" == " " -o -z "$3" ]; then
         sed -i "/${2//\//\\/}/,/^\s*$/d" $1;
       else
@@ -370,7 +370,7 @@ replace_section() {
 remove_section() {
   begin=`grep -n "$2" $1 | head -n1 | cut -d: -f1`;
   for end in `grep -n "$3" $1 | cut -d: -f1`; do
-    if [ "$begin" -lt "$end" ]; then
+    if [ "$begin" -a "$end" ] && [ "$begin" -lt "$end" ]; then
       if [ "$3" == " " -o -z "$3" ]; then
         sed -i "/${2//\//\\/}/,/^\s*$/d" $1;
       else
@@ -389,7 +389,7 @@ insert_line() {
       after) offset=1;;
     esac;
     line=$((`grep -n "$4" $1 | head -n1 | cut -d: -f1` + offset));
-    if [ -f $1 ] && [ "$(wc -l $1 | cut -d\  -f1)" -lt "$line" ]; then
+    if [ -f $1 -a "$line" ] && [ "$(wc -l $1 | cut -d\  -f1)" -lt "$line" ]; then
       echo "$5" >> $1;
     else
       sed -i "${line}s;^;${5}\n;" $1;

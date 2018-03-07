@@ -17,6 +17,9 @@ ui_print() { echo -e "ui_print $1\nui_print" > $OUTFD; }
 # contains <string> <substring>
 contains() { test "${1#*$2}" != "$1" && return 0 || return 1; }
 
+# file_getprop <file> <property>
+file_getprop() { grep "^$2=" "$1" | cut -d= -f2; }
+
 # reset anykernel directory
 reset_ak() {
   rm -rf $ramdisk $split_img /tmp/anykernel/rdtmp /tmp/anykernel/boot.img /tmp/anykernel/*-new.*;

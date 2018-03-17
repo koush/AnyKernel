@@ -121,4 +121,6 @@ It is also extremely important to note that for the broadest AK2 compatibility i
 
 If running into trouble when flashing an AK2 zip, the suffix -debugging may be added to the zip's filename to enable creation of a debug .tgz of /tmp for later examination while booted or on desktop.
 
+For further support please see the AnyKernel2 XDA thread: https://forum.xda-developers.com/showthread.php?t=2670512
+
 Have fun!

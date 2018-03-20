@@ -81,10 +81,6 @@ The AK2 repo includes my latest static ARM builds of `mkbootimg`, `unpackbootimg
 https://forum.xda-developers.com/showthread.php?t=2073775 (Android Image Kitchen thread)  
 https://forum.xda-developers.com/showthread.php?t=2239421 (Odds and Ends thread)
 
-Or as linked, here:
-
-https://forum.xda-developers.com/xperia-j-e/development/arm-elftool-pack-unpack-boot-image-sony-t2146022 (ElfTool)
-
 Optional supported binaries which may be placed in /tools to enable built-in expanded functionality are as follows:
 * `mkbootfs` - for broken recoveries, or, booted flash support for a script or app via bind mounting to a /tmp directory
 * `flash_erase`, `nanddump`, `nandwrite` - MTD block device support for devices where the `dd` command is not sufficient

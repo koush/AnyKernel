@@ -43,6 +43,7 @@ dump_boot
 split_boot
 unpack_ramdisk
 backup_file <file>
+restore_file <file>
 replace_string <file> <if search string> <original string> <replacement string>
 replace_section <file> <begin search string> <end search string> <replacement string>
 remove_section <file> <begin search string> <end search string>
@@ -72,6 +73,8 @@ __"block|mount|fstype|options|flags"__ requires you specify which part (listed i
 
 _dump_boot_ and _write_boot_ are the default method of unpacking/repacking, but for more granular control, or omitting ramdisk changes entirely ("OG AK" mode), these can be separated into _split_boot; unpack_ramdisk_ and _repack_ramdisk; flash_boot_ respectively.
 
+_backup_file_ may be used for testing to ensure ramdisk changes are made correctly, transparency for the end-user, or in a ramdisk-only "mod" zip. In the latter case _restore_file_ could also be used to create a "restore" zip to undo the changes, but should be used with caution since the underlying patched files could be changed with ROM/kernel updates.
+
 You may also use _ui_print "\<text\>"_ to write messages back to the recovery during the modification process, and _file_getprop "\<file\>" "\<property\>"_ and _contains "\<string\>" "\<substring\>"_ to simplify string testing logic you might want in your script.
 
 ## // Binary Inclusion ##
@@ -82,7 +85,7 @@ https://forum.xda-developers.com/showthread.php?t=2073775 (Android Image Kitchen
 https://forum.xda-developers.com/showthread.php?t=2239421 (Odds and Ends thread)
 
 Optional supported binaries which may be placed in /tools to enable built-in expanded functionality are as follows:
-* `mkbootfs` - for broken recoveries, or, booted flash support for a script or app via bind mounting to a /tmp directory
+* `mkbootfs` - for broken recoveries, or, booted flash support for a script/app via bind mount to /tmp (deprecated/use with caution)
 * `flash_erase`, `nanddump`, `nandwrite` - MTD block device support for devices where the `dd` command is not sufficient
 * `pxa-unpackbootimg`, `pxa-mkbootimg` - Samsung/Marvell PXA1088/PXA1908 boot.img format variant support
 * `dumpimage`, `mkimage` - DENX U-Boot uImage format support
@@ -117,6 +120,6 @@ It is also extremely important to note that for the broadest AK2 compatibility i
 
 If running into trouble when flashing an AK2 zip, the suffix -debugging may be added to the zip's filename to enable creation of a debug .tgz of /tmp for later examination while booted or on desktop.
 
-For further support please see the AnyKernel2 XDA thread: https://forum.xda-developers.com/showthread.php?t=2670512
+For further support and usage examples please see the AnyKernel2 XDA thread: https://forum.xda-developers.com/showthread.php?t=2670512
 
 Have fun!

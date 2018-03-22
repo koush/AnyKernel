@@ -346,6 +346,9 @@ write_boot() {
 # backup_file <file>
 backup_file() { test ! -f $1~ && cp $1 $1~; }
 
+# restore_file <file>
+restore_file() { test -f $1~ && mv -f $1~ $1; }
+
 # replace_string <file> <if search string> <original string> <replacement string>
 replace_string() {
   if [ -z "$(grep "$2" $1)" ]; then

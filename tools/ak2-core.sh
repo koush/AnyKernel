@@ -518,7 +518,7 @@ fi;
 test ! -d "$ramdisk" && mkdir -p $ramdisk;
 
 # slot detection enabled by is_slot_device=1 (from anykernel.sh)
-if [ "$is_slot_device" == 1 ]; then
+if [ "$is_slot_device" == 1 -o "$is_slot_device" == "auto" ]; then
   slot=$(getprop ro.boot.slot_suffix 2>/dev/null);
   test ! "$slot" && slot=$(grep -o 'androidboot.slot_suffix=.*$' /proc/cmdline | cut -d\  -f1 | cut -d= -f2);
   if [ ! "$slot" ]; then
@@ -526,8 +526,10 @@ if [ "$is_slot_device" == 1 ]; then
     test ! "$slot" && slot=$(grep -o 'androidboot.slot=.*$' /proc/cmdline | cut -d\  -f1 | cut -d= -f2);
     test "$slot" && slot=_$slot;
   fi;
-  test "$slot" && block=$block$slot;
-  if [ $? != 0 -o ! -e "$block" ]; then
+  if [ "$slot" ]; then
+    test -e "$block$slot" && block=$block$slot;
+  fi;
+  if [ $? != 0 -a "$is_slot_device" == 1 ]; then
     ui_print " "; ui_print "Unable to determine active boot slot. Aborting..."; exit 1;
   fi;
 fi;

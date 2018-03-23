@@ -22,10 +22,11 @@ file_getprop() { grep "^$2=" "$1" | cut -d= -f2; }
 
 # reset anykernel directory
 reset_ak() {
+  rm -rf $(dirname /tmp/anykernel/*-files/current)/ramdisk;
   for i in $ramdisk $split_img /tmp/anykernel/rdtmp /tmp/anykernel/boot.img /tmp/anykernel/*-new*; do
     cp -af $i $(dirname /tmp/anykernel/*-files/current);
   done;
-  rm -rf $ramdisk $split_img /tmp/anykernel/rdtmp /tmp/anykernel/boot.img /tmp/anykernel/*-new* /tmp/anykernel/*-files/current;
+  rm -rf $ramdisk $split_img $patch /tmp/anykernel/rdtmp /tmp/anykernel/boot.img /tmp/anykernel/*-new* /tmp/anykernel/*-files/current;
   . /tmp/anykernel/tools/ak2-core.sh $FD;
 }
 
@@ -506,8 +507,12 @@ patch_prop() {
 }
 
 # allow multi-partition ramdisk modifying configurations (using reset_ak)
-if [ ! -d "$ramdisk" -a -d "$(basename $block)-files" ]; then
-  cp -af /tmp/anykernel/$(basename $block)-files/* /tmp/anykernel;
+if [ ! -d "$ramdisk" -a ! -d "$patch" ]; then
+  if [ -d "$(basename $block)-files" ]; then
+    cp -af /tmp/anykernel/$(basename $block)-files/* /tmp/anykernel;
+  else
+    mkdir -p /tmp/anykernel/$(basename $block)-files;
+  fi;
   touch /tmp/anykernel/$(basename $block)-files/current;
 fi;
 test ! -d "$ramdisk" && mkdir -p $ramdisk;

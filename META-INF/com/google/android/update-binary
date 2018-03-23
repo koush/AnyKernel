@@ -116,18 +116,18 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.modules)" == 1 ]; then
   mount -o rw,remount -t auto /vendor 2>/dev/null;
   cd /tmp/anykernel/modules;
   for module in $(find . -name '*.ko'); do
-    if [ ! -e /$module ]; then
+    if [ ! -e $root/$module ]; then
       case $module in
         */vendor/*) mod=vendor;;
         *) mod=system;;
       esac;
     fi;
-    $bb mkdir -p /$(dirname $module);                                 
-    $bb cp -rLf $module /$module;
-    $bb chown 0:0 /$module;
-    $bb chmod 644 /$module;
+    mkdir -p $root/$(dirname $module);
+    $bb cp -rLf $module $root/$module;
+    $bb chown 0:0 $root/$module;
+    $bb chmod 644 $root/$module;
     if [ "$mod" ]; then
-      chcon "u:object_r:${mod}_file:s0" /$module;
+      chcon "u:object_r:${mod}_file:s0" $root/$module;
     fi;
   done;
   cd /tmp/anykernel;

@@ -169,6 +169,7 @@ flash_boot() {
   else
     if [ -f *-cmdline ]; then
       cmdline=`cat *-cmdline`;
+      cmd="$split_img/boot.img-cmdline@cmdline";
     fi;
     if [ -f *-board ]; then
       board=`cat *-board`;
@@ -240,7 +241,7 @@ flash_boot() {
     test "$type" == "Multi" && uramdisk=":$rd";
     $bin/mkimage -A $arch -O $os -T $type -C $comp -a $addr -e $ep -n "$name" -d $kernel$uramdisk boot-new.img;
   elif [ -f "$bin/elftool" ]; then
-    $bin/elftool pack -o boot-new.img header=$split_img/boot.img-header $kernel $rd,ramdisk $rpm $split_img/boot.img-cmdline@cmdline;
+    $bin/elftool pack -o boot-new.img header=$split_img/boot.img-header $kernel $rd,ramdisk $rpm $cmd;
   elif [ -f "$bin/rkcrc" ]; then
     $bin/rkcrc -k $rd boot-new.img;
   elif [ -f "$bin/pxa-mkbootimg" ]; then

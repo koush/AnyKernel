@@ -260,35 +260,19 @@ flash_boot() {
     mv -f boot-new-signed.img boot-new.img;
   fi;
   if [ -f "$bin/BootSignature_Android.jar" -a -d "$bin/avb" ]; then
-    if [ -f "/system/system/bin/dalvikvm" ]; then
-      umount /system;
-      umount /system 2>/dev/null;
-      mkdir /system_root;
-      mount -o ro -t auto /dev/block/bootdevice/by-name/system$slot /system_root;
-      mount -o bind /system_root/system /system;
-    fi;
     pk8=`ls $bin/avb/*.pk8`;
     cert=`ls $bin/avb/*.x509.*`;
     case $block in
       *recovery*|*SOS*) avbtype=recovery;;
       *) avbtype=boot;;
     esac;
-    savedpath="$LD_LIBRARY_PATH";
-    unset LD_LIBRARY_PATH;
     if [ "$(/system/bin/dalvikvm -Xbootclasspath:/system/framework/core-oj.jar:/system/framework/core-libart.jar:/system/framework/conscrypt.jar:/system/framework/bouncycastle.jar -Xnodex2oat -Xnoimage-dex2oat -cp $bin/BootSignature_Android.jar com.android.verity.BootSignature -verify boot.img 2>&1 | grep VALID)" ]; then
       /system/bin/dalvikvm -Xbootclasspath:/system/framework/core-oj.jar:/system/framework/core-libart.jar:/system/framework/conscrypt.jar:/system/framework/bouncycastle.jar -Xnodex2oat -Xnoimage-dex2oat -cp $bin/BootSignature_Android.jar com.android.verity.BootSignature /$avbtype boot-new.img $pk8 $cert boot-new-signed.img;
       if [ $? != 0 ]; then
         ui_print " "; ui_print "Signing image failed. Aborting..."; exit 1;
       fi;
     fi;
-    test "$savedpath" && export LD_LIBRARY_PATH="$savedpath";
     mv -f boot-new-signed.img boot-new.img;
-    if [ -d "/system_root" ]; then
-      umount /system;
-      umount /system_root;
-      rmdir /system_root;
-      mount -o ro -t auto /system;
-    fi;
   fi;
   if [ -f "$bin/blobpack" ]; then
     printf '-SIGNED-BY-SIGNBLOB-\00\00\00\00\00\00\00\00' > boot-new-signed.img;

@@ -17,7 +17,7 @@ file_getprop() { grep "^$2=" "$1" | cut -d= -f2; }
 if [ ! "$(getprop 2>/dev/null)" ]; then
   getprop() {
     local propval="$(file_getprop /default.prop $1 2>/dev/null)";
-    test "$propval" || local propval="$(file_getprop $root/system/build.prop $1 2>/dev/null)";
+    test "$propval" || local propval="$(file_getprop /system/build.prop $1 2>/dev/null)";
     test "$propval" && echo "$propval" || echo "";
   }
 fi;
@@ -31,15 +31,22 @@ debugging() {
     ;;
   esac;
 }
+unmount_all() {
+  umount /system 2>/dev/null;
+  if [ -d /system_root -a ! -f /system/build.prop ]; then
+    umount /system_root 2>/dev/null;
+  fi;
+  umount /system 2>/dev/null;
+  umount /vendor 2>/dev/null;
+  umount /data 2>/dev/null;
+}
 abort() {
   ui_print "$*";
   debugging;
   if [ ! -f /tmp/anykernel/anykernel.sh -o "$(file_getprop /tmp/anykernel/anykernel.sh do.cleanuponabort 2>/dev/null)" == 1 ]; then
     cleanup;
   fi;
-  umount /system;
-  umount /vendor 2>/dev/null;
-  umount /data 2>/dev/null;
+  unmount_all;
   exit 1;
 }
 
@@ -75,12 +82,21 @@ ui_print "AnyKernel2 by osm0sis @ xda-developers";
 ui_print " ";
 ui_print " ";
 
-umount /system 2>/dev/null;
-umount /vendor 2>/dev/null;
+unmount_all;
 mount -o ro -t auto /system;
 mount -o ro -t auto /vendor 2>/dev/null;
 mount /data 2>/dev/null;
-test -f /system/system/build.prop && root=/system;
+if [ -f /system/system/build.prop ]; then
+  umount /system;
+  umount /system 2>/dev/null;
+  mkdir /system_root 2>/dev/null;
+  mount -o ro -t auto /dev/block/bootdevice/by-name/system /system_root;
+  mount -o bind /system_root/system /system;
+fi;
+savedpath="$LD_LIBRARY_PATH";
+savedpre="$LD_PRELOAD";
+unset LD_LIBRARY_PATH;
+unset LD_PRELOAD;
 
 if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.devicecheck)" == 1 ]; then
   ui_print "Checking device...";
@@ -116,22 +132,18 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.modules)" == 1 ]; then
   mount -o rw,remount -t auto /vendor 2>/dev/null;
   cd /tmp/anykernel/modules;
   for module in $(find . -name '*.ko'); do
-    case $module in
-      */system/*) modtarget=$root/$module;;
-      *) modtarget=/$module;;
-    esac;
-    if [ ! -e $modtarget ]; then
+    if [ ! -e /$module ]; then
       case $module in
         */vendor/*) mod=vendor;;
         *) mod=system;;
       esac;
     fi;
-    mkdir -p $(dirname $modtarget);
-    $bb cp -rLf $module $modtarget;
-    $bb chown 0:0 $modtarget;
-    $bb chmod 644 $modtarget;
+    mkdir -p $(dirname /$module);
+    $bb cp -rLf $module /$module;
+    $bb chown 0:0 /$module;
+    $bb chmod 644 /$module;
     if [ "$mod" ]; then
-      chcon "u:object_r:${mod}_file:s0" $modtarget;
+      chcon "u:object_r:${mod}_file:s0" /$module;
     fi;
   done;
   cd /tmp/anykernel;
@@ -145,9 +157,11 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.cleanup)" == 1 ]; then
   cleanup;
 fi;
 
-umount /system;
-umount /vendor 2>/dev/null;
-umount /data 2>/dev/null;
+test "$savedpath" && export LD_LIBRARY_PATH="$savedpath";
+test "$savedpre" && export LD_PRELOAD="$savedpre";
+
+unmount_all;
+
 ui_print " ";
 ui_print " ";
 ui_print "Done!";

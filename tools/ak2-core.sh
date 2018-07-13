@@ -22,6 +22,7 @@ file_getprop() { grep "^$2=" "$1" | cut -d= -f2; }
 
 # reset anykernel directory
 reset_ak() {
+  local i;
   rm -rf $(dirname /tmp/anykernel/*-files/current)/ramdisk;
   for i in $ramdisk $split_img /tmp/anykernel/rdtmp /tmp/anykernel/boot.img /tmp/anykernel/*-new*; do
     cp -af $i $(dirname /tmp/anykernel/*-files/current);
@@ -32,6 +33,7 @@ reset_ak() {
 
 # dump boot and extract ramdisk
 split_boot() {
+  local nooktest nookoff dumpfail;
   if [ ! -e "$(echo $block | cut -d\  -f1)" ]; then
     ui_print " "; ui_print "Invalid partition. Aborting..."; exit 1;
   fi;
@@ -95,6 +97,7 @@ split_boot() {
   fi;
 }
 unpack_ramdisk() {
+  local compext unpackcmd;
   if [ -f "$bin/mkmtkhdr" ]; then
     dd bs=512 skip=1 conv=notrunc if=$split_img/boot.img-ramdisk.gz of=$split_img/temprd;
     mv -f $split_img/temprd $split_img/boot.img-ramdisk.gz;
@@ -127,6 +130,7 @@ dump_boot() {
 
 # repack ramdisk then build and write image
 repack_ramdisk() {
+  local compext repackcmd;
   case $ramdisk_compression in
     auto|"") compext=`echo $split_img/*-ramdisk.cpio.* | rev | cut -d. -f1 | rev`;;
     *) compext=$ramdisk_compression;;
@@ -156,6 +160,7 @@ repack_ramdisk() {
   fi;
 }
 flash_boot() {
+  local name arch os type comp addr ep cmdline cmd board base pagesize kerneloff ramdiskoff tagsoff osver oslvl second secondoff hash unknown i kernel rd dtb rpm pk8 cert avbtype dtbo dtbo_block;
   cd $split_img;
   if [ -f "$bin/mkimage" ]; then
     name=`cat *-name`;
@@ -343,12 +348,13 @@ restore_file() { test -f $1~ && mv -f $1~ $1; }
 # replace_string <file> <if search string> <original string> <replacement string>
 replace_string() {
   if [ -z "$(grep "$2" $1)" ]; then
-      sed -i "s;${3};${4};" $1;
+    sed -i "s;${3};${4};" $1;
   fi;
 }
 
 # replace_section <file> <begin search string> <end search string> <replacement string>
 replace_section() {
+  local begin endstr end;
   begin=`grep -n "$2" $1 | head -n1 | cut -d: -f1`;
   if [ "$begin" ]; then
     test "$3" == " " -o -z "$3" && endstr='^$' || endstr="$3";
@@ -368,6 +374,7 @@ replace_section() {
 
 # remove_section <file> <begin search string> <end search string>
 remove_section() {
+  local begin endstr end;
   begin=`grep -n "$2" $1 | head -n1 | cut -d: -f1`;
   if [ "$begin" ]; then
     test "$3" == " " -o -z "$3" && endstr='^$' || endstr="$3";
@@ -386,6 +393,7 @@ remove_section() {
 
 # insert_line <file> <if search string> <before|after> <line match string> <inserted line>
 insert_line() {
+  local offset line;
   if [ -z "$(grep "$2" $1)" ]; then
     case $3 in
       before) offset=0;;
@@ -403,7 +411,7 @@ insert_line() {
 # replace_line <file> <line replace string> <replacement line>
 replace_line() {
   if [ ! -z "$(grep "$2" $1)" ]; then
-    line=`grep -n "$2" $1 | head -n1 | cut -d: -f1`;
+    local line=`grep -n "$2" $1 | head -n1 | cut -d: -f1`;
     sed -i "${line}s;.*;${3};" $1;
   fi;
 }
@@ -411,7 +419,7 @@ replace_line() {
 # remove_line <file> <line match string>
 remove_line() {
   if [ ! -z "$(grep "$2" $1)" ]; then
-    line=`grep -n "$2" $1 | head -n1 | cut -d: -f1`;
+    local line=`grep -n "$2" $1 | head -n1 | cut -d: -f1`;
     sed -i "${line}d" $1;
   fi;
 }
@@ -425,6 +433,7 @@ prepend_file() {
 
 # insert_file <file> <if search string> <before|after> <line match string> <patch file>
 insert_file() {
+  local offset line;
   if [ -z "$(grep "$2" $1)" ]; then
     case $3 in
       before) offset=0;;
@@ -453,6 +462,7 @@ replace_file() {
 
 # patch_fstab <fstab file> <mount match name> <fs match type> <block|mount|fstype|options|flags> <original string> <replacement string>
 patch_fstab() {
+  local entry part newpart newentry;
   entry=$(grep "$2" $1 | grep "$3");
   if [ -z "$(echo "$entry" | grep "$6")" -o "$6" == " " -o -z "$6" ]; then
     case $4 in
@@ -470,6 +480,7 @@ patch_fstab() {
 
 # patch_cmdline <cmdline entry name> <replacement string>
 patch_cmdline() {
+  local cmdfile cmdtmp match;
   cmdfile=`ls $split_img/*-cmdline`;
   if [ -z "$(grep "$1" $cmdfile)" ]; then
     cmdtmp=`cat $cmdfile`;
@@ -486,7 +497,7 @@ patch_prop() {
   if [ -z "$(grep "^$2=" $1)" ]; then
     echo -ne "\n$2=$3\n" >> $1;
   else
-    line=`grep -n "^$2=" $1 | head -n1 | cut -d: -f1`;
+    local line=`grep -n "^$2=" $1 | head -n1 | cut -d: -f1`;
     sed -i "${line}s;.*;${2}=${3};" $1;
   fi;
 }

@@ -33,6 +33,8 @@ __do.cleanup=0__ will keep the zip from removing it's working directory in /tmp/
 
 __do.cleanuponabort=0__ will keep the zip from removing it's working directory in /tmp/anykernel in case of installation abort.
 
+`block=auto` enables detection of the device boot partition for use with broad, device non-specific zips. Also accepts specifically `boot` or `recovery`.
+
 `is_slot_device=1` enables detection of the suffix for the active boot partition on slot-based devices and will add this to the end of the supplied `block=` path. Also accepts `auto` for use with broad, device non-specific zips.
 
 `ramdisk_compression=auto` allows automatically repacking the ramdisk with the format detected during unpack, changing `auto` to `gz`, `lzo`, `lzma`, `xz`, `bz2`, `lz4`, or `lz4-l` (for lz4 legacy) instead forces the repack as that format.
@@ -110,7 +112,7 @@ Optional supported binaries which may be placed in /tools to enable built-in exp
 
 4. Modify the anykernel.sh to add your kernel's name, boot partition location, permissions for included ramdisk files, and use methods for any required ramdisk modifications (optionally, also place banner and/or version files in the root to have these displayed during flash)
 
-5. `zip -r9 UPDATE-AnyKernel2.zip * -x README.md UPDATE-AnyKernel2.zip`
+5. `zip -r9 UPDATE-AnyKernel2.zip * -x .git README.md *placeholder`
 
 If supporting a recovery that forces zip signature verification (like Cyanogen Recovery) then you will need to also sign your zip using the method I describe here:
 

@@ -503,22 +503,58 @@ if [ ! -d "$ramdisk" -a ! -d "$patch" ]; then
 fi;
 test ! -d "$ramdisk" && mkdir -p $ramdisk;
 
-# slot detection enabled by is_slot_device=1 (from anykernel.sh)
-if [ "$is_slot_device" == 1 -o "$is_slot_device" == "auto" ]; then
-  slot=$(getprop ro.boot.slot_suffix 2>/dev/null);
-  test ! "$slot" && slot=$(grep -o 'androidboot.slot_suffix=.*$' /proc/cmdline | cut -d\  -f1 | cut -d= -f2);
-  if [ ! "$slot" ]; then
-    slot=$(getprop ro.boot.slot 2>/dev/null);
-    test ! "$slot" && slot=$(grep -o 'androidboot.slot=.*$' /proc/cmdline | cut -d\  -f1 | cut -d= -f2);
-    test "$slot" && slot=_$slot;
-  fi;
-  if [ "$slot" ]; then
-    test -e "$block$slot" && block=$block$slot;
-  fi;
-  if [ $? != 0 -a "$is_slot_device" == 1 ]; then
-    ui_print " "; ui_print "Unable to determine active boot slot. Aborting..."; exit 1;
-  fi;
-fi;
+# slot detection enabled by is_slot_device=1 or auto (from anykernel.sh)
+case $is_slot_device in
+  1|auto)
+    slot=$(getprop ro.boot.slot_suffix 2>/dev/null);
+    test ! "$slot" && slot=$(grep -o 'androidboot.slot_suffix=.*$' /proc/cmdline | cut -d\  -f1 | cut -d= -f2);
+    if [ ! "$slot" ]; then
+      slot=$(getprop ro.boot.slot 2>/dev/null);
+      test ! "$slot" && slot=$(grep -o 'androidboot.slot=.*$' /proc/cmdline | cut -d\  -f1 | cut -d= -f2);
+      test "$slot" && slot=_$slot;
+    fi;
+    if [ ! "$slot" -a "$is_slot_device" == 1 ]; then
+      ui_print " "; ui_print "Unable to determine active boot slot. Aborting..."; exit 1;
+    fi;
+  ;;
+esac;
+
+# target block partition detection enabled by block=boot recovery or auto (from anykernel.sh)
+test "$block" == "auto" && block=boot;
+case $block in
+  boot|recovery)
+    case $block in
+      boot) parttype="ramdisk boot BOOT LNX android_boot KERN-A kernel KERNEL";;
+      recovery) parttype="ramdisk_recovey recovery RECOVERY SOS android_recovery";;
+    esac;
+    for name in $parttype; do
+      for part in $name $name$slot; do
+        if [ "$(grep -w "$part" /proc/mtd 2> /dev/null)" ]; then
+          mtdmount=$(grep -w "$part" /proc/mtd);
+          mtdpart=$(echo $mtdmount | cut -d\" -f2);
+          if [ "$mtdpart" == "$part" ]; then
+            mtd=$(echo $mtdmount | cut -d: -f1);
+          else
+            ui_print " "; ui_print "Unable to determine mtd $block partition. Aborting..."; exit 1;
+          fi;
+          target=/dev/mtd/$mtd;
+        elif [ -e /dev/block/bootdevice/by-name/$part ]; then
+          target=/dev/block/bootdevice/by-name/$part;
+        elif [ -e /dev/block/platform/*/by-name/$part ]; then
+          target=/dev/block/platform/*/by-name/$part;
+        elif [ -e /dev/block/platform/*/*/by-name/$part ]; then
+          target=/dev/block/platform/*/*/by-name/$part;
+        fi;
+        test -e "$target" && break 2;
+      done;
+    done;
+    if [ "$target" ]; then
+      block=$(echo -n $target);
+    else
+      ui_print " "; ui_print "Unable to determine $block partition. Aborting..."; exit 1;
+    fi;
+  ;;
+esac;
 
 ## end methods
 

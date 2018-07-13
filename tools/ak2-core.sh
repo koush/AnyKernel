@@ -316,8 +316,7 @@ flash_boot() {
     fi;
   done;
   if [ "$dtbo" ]; then
-    dtbo_block=`find /dev/block -iname dtbo$slot | head -n 1` 2>/dev/null;
-    [ ! -z $dtbo_block ] && dtbo_block=`readlink -f $dtbo_block`
+    dtbo_block=/dev/block/bootdevice/by-name/dtbo$slot;
     if [ ! -e "$(echo $dtbo_block)" ]; then
       ui_print " "; ui_print "dtbo partition could not be found. Aborting..."; exit 1;
     fi;

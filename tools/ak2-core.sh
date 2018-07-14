@@ -354,17 +354,19 @@ replace_string() {
 
 # replace_section <file> <begin search string> <end search string> <replacement string>
 replace_section() {
-  local begin endstr end;
+  local begin endstr last end;
   begin=`grep -n "$2" $1 | head -n1 | cut -d: -f1`;
   if [ "$begin" ]; then
-    test "$3" == " " -o -z "$3" && endstr='^$' || endstr="$3";
-    for end in `grep -n "$endstr" $1 | cut -d: -f1`; do
+    if [ "$3" == " " -o -z "$3" ]; then
+      endstr='^[[:space:]]*$';
+      last=$(wc -l $1 | cut -d\  -f1);
+    else
+      endstr="$3";
+    fi;
+    for end in $(grep -n "$endstr" $1 | cut -d: -f1) $last; do
       if [ "$end" ] && [ "$begin" -lt "$end" ]; then
-        if [ "$3" == " " -o -z "$3" ]; then
-          sed -i "/${2//\//\\/}/,/^\s*$/d" $1;
-        else
-          sed -i "/${2//\//\\/}/,/${3//\//\\/}/d" $1;
-        fi;
+        sed -i "${begin},${end}d" $1;
+        test "$end" == "$last" && echo >> $1;
         sed -i "${begin}s;^;${4}\n;" $1;
         break;
       fi;
@@ -374,17 +376,18 @@ replace_section() {
 
 # remove_section <file> <begin search string> <end search string>
 remove_section() {
-  local begin endstr end;
+  local begin endstr last end;
   begin=`grep -n "$2" $1 | head -n1 | cut -d: -f1`;
   if [ "$begin" ]; then
-    test "$3" == " " -o -z "$3" && endstr='^$' || endstr="$3";
-    for end in `grep -n "$endstr" $1 | cut -d: -f1`; do
+    if [ "$3" == " " -o -z "$3" ]; then
+      endstr='^[[:space:]]*$';
+      last=$(wc -l $1 | cut -d\  -f1);
+    else
+      endstr="$3";
+    fi;
+    for end in $(grep -n "$endstr" $1 | cut -d: -f1) $last; do
       if [ "$end" ] && [ "$begin" -lt "$end" ]; then
-        if [ "$3" == " " -o -z "$3" ]; then
-          sed -i "/${2//\//\\/}/,/^\s*$/d" $1;
-        else
-          sed -i "/${2//\//\\/}/,/${3//\//\\/}/d" $1;
-        fi;
+        sed -i "${begin},${end}d" $1;
         break;
       fi;
     done;

@@ -567,6 +567,11 @@ case $block in
       ui_print " "; ui_print "Unable to determine $block partition. Aborting..."; exit 1;
     fi;
   ;;
+  *)
+    if [ "$slot" ]; then
+      test -e "$block$slot" && block=$block$slot;
+    fi;
+  ;;
 esac;
 
 ## end methods

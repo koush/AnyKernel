@@ -505,6 +505,21 @@ patch_prop() {
   fi;
 }
 
+# patch_ueventd <ueventd file> <device node> <permissions> <chown> <chgrp>
+patch_ueventd() {
+  local file dev perm user group newentry line;
+  file=$1; dev=$2; perm=$3; user=$4;
+  shift 4;
+  group="$@";
+  newentry=$(printf "%-23s   %-4s   %-8s   %s\n" "$dev" "$perm" "$user" "$group");
+  line=`grep -n "$dev" $file | head -n1 | cut -d: -f1`;
+  if [ "$line" ]; then
+    sed -i "${line}s;.*;${newentry};" $file;
+  else
+    echo -ne "\n$newentry\n" >> $file;
+  fi;
+}
+
 # allow multi-partition ramdisk modifying configurations (using reset_ak)
 if [ ! -d "$ramdisk" -a ! -d "$patch" ]; then
   if [ -d "$(basename $block)-files" ]; then

@@ -59,6 +59,7 @@ replace_file <file> <permissions> <patch file>
 patch_fstab <fstab file> <mount match name> <fs match type> <block|mount|fstype|options|flags> <original string> <replacement string>
 patch_cmdline <cmdline entry name> <replacement string>
 patch_prop <prop file> <prop name> <new prop value>
+patch_ueventd <ueventd file> <device node> <permissions> <chown> <chgrp>
 repack_ramdisk
 flash_boot
 write_boot

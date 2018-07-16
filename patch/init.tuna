@@ -1,4 +1,4 @@
-service dvbootscript /sbin/dvbootscript.sh
+service bootscript /sbin/bootscript.sh
 	class main
 	user root
 	group root

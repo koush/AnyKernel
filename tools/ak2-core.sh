@@ -217,8 +217,8 @@ flash_boot() {
     kernel=`ls *-zImage`;
     kernel=$split_img/$kernel;
   fi;
-  if [ -f /tmp/anykernel/ramdisk-new.cpio.$compext ]; then
-    rd=/tmp/anykernel/ramdisk-new.cpio.$compext;
+  if [ -f /tmp/anykernel/ramdisk-new.cpio.* ]; then
+    rd=`echo /tmp/anykernel/ramdisk-new.cpio.*`;
   else
     rd=`ls *-ramdisk.*`;
     rd="$split_img/$rd";

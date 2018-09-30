@@ -569,6 +569,8 @@ case $block in
             ui_print " "; ui_print "Unable to determine mtd $block partition. Aborting..."; exit 1;
           fi;
           target=/dev/mtd/$mtd;
+        elif [ -e /dev/block/by-name/$part ]; then
+          block=/dev/block/by-name/$part;
         elif [ -e /dev/block/bootdevice/by-name/$part ]; then
           target=/dev/block/bootdevice/by-name/$part;
         elif [ -e /dev/block/platform/*/by-name/$part ]; then

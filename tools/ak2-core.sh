@@ -570,7 +570,7 @@ case $block in
           fi;
           target=/dev/mtd/$mtd;
         elif [ -e /dev/block/by-name/$part ]; then
-          block=/dev/block/by-name/$part;
+          target=/dev/block/by-name/$part;
         elif [ -e /dev/block/bootdevice/by-name/$part ]; then
           target=/dev/block/bootdevice/by-name/$part;
         elif [ -e /dev/block/platform/*/by-name/$part ]; then

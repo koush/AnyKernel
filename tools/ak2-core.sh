@@ -213,11 +213,18 @@ flash_boot() {
     if [ -f *-oslevel ]; then
       oslvl=`cat *-oslevel`;
     fi;
+    if [ -f *-headerversion ]; then
+      hdrver=`cat *-headerversion`;
+    fi;
     if [ -f *-second ]; then
       second=`ls *-second`;
       second="--second $split_img/$second";
       secondoff=`cat *-secondoff`;
       secondoff="--second_offset $secondoff";
+    fi;
+    if [ -f *-recoverydtbo ]; then
+      recoverydtbo=`ls *-recoverydtbo`;
+      recoverydtbo="--recovery_dtbo $split_img/$recoverydtbo";
     fi;
     if [ -f *-hash ]; then
       hash=`cat *-hash`;
@@ -273,7 +280,7 @@ flash_boot() {
   elif [ -f "$bin/pxa-mkbootimg" ]; then
     $bin/pxa-mkbootimg --kernel $kernel --ramdisk $rd $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset "$tagsoff" --unknown $unknown $dtb --output boot-new.img;
   else
-    $bin/mkbootimg --kernel $kernel --ramdisk $rd $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset "$tagsoff" --os_version "$osver" --os_patch_level "$oslvl" $hash $dtb --output boot-new.img;
+    $bin/mkbootimg --kernel $kernel --ramdisk $rd $second $recoverydtbo --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset "$tagsoff" --os_version "$osver" --os_patch_level "$oslvl" --header_version "$hdrver" $hash $dtb --output boot-new.img;
   fi;
   if [ $? != 0 ]; then
     ui_print " "; ui_print "Repacking image failed. Aborting..."; exit 1;

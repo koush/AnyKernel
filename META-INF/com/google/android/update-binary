@@ -13,7 +13,7 @@ ui_print() {
   done;
 }
 show_progress() { echo "progress $1 $2" > $OUTFD; }
-file_getprop() { grep "^$2=" "$1" | cut -d= -f2; }
+file_getprop() { $bb grep "^$2=" "$1" | $bb cut -d= -f2; }
 if [ ! "$(getprop 2>/dev/null)" ]; then
   getprop() {
     local propval="$(file_getprop /default.prop $1 2>/dev/null)";
@@ -147,7 +147,9 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.modules)" == 1 ]; then
         *) mod=system;;
       esac;
     fi;
-    $bb mount -o rw,remount -t auto /$module 2>/dev/null;
+    if [ "$($bb mount | $bb grep " $(echo $module | $bb cut -c2-) ")" ]; then
+      $bb mount -o rw,remount -t auto /$module;
+    fi;
     mkdir -p $(dirname /$module);
     $bb cp -rLf $module /$module;
     $bb chown 0:0 /$module;
@@ -155,7 +157,9 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.modules)" == 1 ]; then
     if [ "$mod" ]; then
       chcon "u:object_r:${mod}_file:s0" /$module;
     fi;
-    $bb mount -o ro,remount -t auto /$module 2>/dev/null;
+    if [ "$($bb mount | $bb grep " $(echo $module | $bb cut -c2-) ")" ]; then
+      $bb mount -o ro,remount -t auto /$module;
+    fi;
   done;
   cd /tmp/anykernel;
   $bb mount -o ro,remount -t auto /system;

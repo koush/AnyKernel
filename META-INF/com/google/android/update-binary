@@ -85,9 +85,9 @@ ui_print " ";
 ui_print " ";
 
 unmount_all;
-mount -o ro -t auto /system;
-mount -o ro -t auto /vendor 2>/dev/null;
-mount /data 2>/dev/null;
+$bb mount -o ro -t auto /system;
+$bb mount -o ro -t auto /vendor 2>/dev/null;
+$bb mount /data 2>/dev/null;
 test -f /system/system/build.prop && root=/system;
 
 if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.devicecheck)" == 1 ]; then
@@ -113,8 +113,8 @@ if [ -f /system/system/build.prop ]; then
   umount /system;
   umount /system 2>/dev/null;
   mkdir /system_root 2>/dev/null;
-  mount -o ro -t auto /dev/block/bootdevice/by-name/system /system_root;
-  mount -o bind /system_root/system /system;
+  $bb mount -o ro -t auto /dev/block/bootdevice/by-name/system /system_root;
+  $bb mount -o bind /system_root/system /system;
   unset root;
 fi;
 savedpath="$LD_LIBRARY_PATH";
@@ -137,8 +137,8 @@ fi;
 if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.modules)" == 1 ]; then
   ui_print " ";
   ui_print "Pushing modules...";
-  mount -o rw,remount -t auto /system;
-  mount -o rw,remount -t auto /vendor 2>/dev/null;
+  $bb mount -o rw,remount -t auto /system;
+  $bb mount -o rw,remount -t auto /vendor 2>/dev/null;
   cd /tmp/anykernel/modules;
   for module in $(find . -name '*.ko'); do
     if [ ! -e /$module ]; then
@@ -147,6 +147,7 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.modules)" == 1 ]; then
         *) mod=system;;
       esac;
     fi;
+    $bb mount -o rw,remount -t auto /$module 2>/dev/null;
     mkdir -p $(dirname /$module);
     $bb cp -rLf $module /$module;
     $bb chown 0:0 /$module;
@@ -154,10 +155,11 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.modules)" == 1 ]; then
     if [ "$mod" ]; then
       chcon "u:object_r:${mod}_file:s0" /$module;
     fi;
+    $bb mount -o ro,remount -t auto /$module 2>/dev/null;
   done;
   cd /tmp/anykernel;
-  mount -o ro,remount -t auto /system;
-  mount -o ro,remount -t auto /vendor 2>/dev/null;
+  $bb mount -o ro,remount -t auto /system;
+  $bb mount -o ro,remount -t auto /vendor 2>/dev/null;
 fi;
 
 debugging;

@@ -14,13 +14,6 @@ ui_print() {
 }
 show_progress() { echo "progress $1 $2" > $OUTFD; }
 file_getprop() { $bb grep "^$2=" "$1" | $bb cut -d= -f2; }
-if [ ! "$(getprop 2>/dev/null)" ]; then
-  getprop() {
-    local propval="$(file_getprop /default.prop $1 2>/dev/null)";
-    test "$propval" || local propval="$(file_getprop $root/system/build.prop $1 2>/dev/null)";
-    test "$propval" && echo "$propval" || echo "";
-  }
-fi;
 cleanup() { rm -rf /tmp/anykernel; }
 debugging() {
   case $(basename "$ZIPFILE" .zip) in
@@ -88,26 +81,6 @@ unmount_all;
 $bb mount -o ro -t auto /system;
 $bb mount -o ro -t auto /vendor 2>/dev/null;
 $bb mount /data 2>/dev/null;
-test -f /system/system/build.prop && root=/system;
-
-if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.devicecheck)" == 1 ]; then
-  ui_print "Checking device...";
-  device="$(getprop ro.product.device)";
-  product="$(getprop ro.build.product)";
-  for testname in $($bb grep "^device.name.*=" /tmp/anykernel/anykernel.sh | $bb cut -d= -f2); do
-    test "$testname" || break;
-    if [ "$device" == "$testname" -o "$product" == "$testname" ]; then
-      ui_print "$testname";
-      match=1;
-      break;
-    fi;
-  done;
-  ui_print " ";
-  if [ "$match" != 1 ]; then
-    abort "Unsupported device. Aborting...";
-  fi;
-fi;
-
 if [ -f /system/system/build.prop ]; then
   umount /system;
   umount /system 2>/dev/null;
@@ -120,6 +93,36 @@ savedpath="$LD_LIBRARY_PATH";
 savedpre="$LD_PRELOAD";
 unset LD_LIBRARY_PATH;
 unset LD_PRELOAD;
+
+if [ ! "$(getprop 2>/dev/null)" ]; then
+  getprop() {
+    local propval="$(file_getprop /default.prop $1 2>/dev/null)";
+    test "$propval" || local propval="$(file_getprop /system/build.prop $1 2>/dev/null)";
+    test "$propval" && echo "$propval" || echo "";
+  }
+elif [ ! "$(getprop ro.product.device 2>/dev/null)" -a ! "$(getprop ro.build.product 2>/dev/null)" ]; then
+  getprop() {
+    ($(which getprop) | $bb grep "$1" | $bb cut -d[ -f3 | $bb cut -d] -f1) 2>/dev/null;
+  }
+fi;
+
+if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.devicecheck)" == 1 ]; then
+  ui_print "Checking device...";
+  device="$(getprop ro.product.device)";
+  product="$(getprop ro.build.product)";
+  for testname in $(file_getprop /tmp/anykernel/anykernel.sh 'device.name.*'); do
+    test "$testname" || break;
+    if [ "$device" == "$testname" -o "$product" == "$testname" ]; then
+      ui_print "$testname";
+      match=1;
+      break;
+    fi;
+  done;
+  ui_print " ";
+  if [ "$match" != 1 ]; then
+    abort "Unsupported device. Aborting...";
+  fi;
+fi;
 
 ui_print "Installing...";
 for i in $($bb --list); do

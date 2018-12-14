@@ -94,8 +94,7 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.devicecheck)" == 1 ]; then
   ui_print "Checking device...";
   device="$(getprop ro.product.device)";
   product="$(getprop ro.build.product)";
-  for i in 1 2 3 4 5; do
-    testname="$(file_getprop /tmp/anykernel/anykernel.sh device.name$i)";
+  for testname in $($bb grep "^device.name.*=" /tmp/anykernel/anykernel.sh | $bb cut -d= -f2); do
     test "$testname" || break;
     if [ "$device" == "$testname" -o "$product" == "$testname" ]; then
       ui_print "$testname";

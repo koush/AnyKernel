@@ -25,7 +25,7 @@ is_slot_device=0;
 ramdisk_compression=auto;
 ```
 
-__do.devicecheck=1__ specified requires at least device.name1 to be present. This should match ro.product.device or ro.build.product for your device. There is support for up to 5 device.name# properties.
+__do.devicecheck=1__ specified requires at least device.name1 to be present. This should match ro.product.device or ro.build.product for your device. There is support for as many device.name# properties as needed.
 
 __do.modules=1__ will push the contents of the module directory to the same location relative to root (/) and apply 644 permissions.
 

@@ -14,7 +14,10 @@ ui_print() {
 }
 show_progress() { echo "progress $1 $2" > $OUTFD; }
 file_getprop() { $bb grep "^$2=" "$1" | $bb cut -d= -f2; }
-cleanup() { rm -rf /tmp/anykernel; }
+cleanup() {
+  cd /tmp;
+  rm -rf /tmp/anykernel;
+}
 debugging() {
   case $(basename "$ZIPFILE" .zip) in
     *-debugging)
@@ -36,7 +39,7 @@ unmount_all() {
 abort() {
   ui_print "$*";
   debugging;
-  if [ ! -f /tmp/anykernel/anykernel.sh -o "$(file_getprop /tmp/anykernel/anykernel.sh do.cleanuponabort 2>/dev/null)" == 1 ]; then
+  if [ ! -f anykernel.sh -o "$(file_getprop anykernel.sh do.cleanuponabort 2>/dev/null)" == 1 ]; then
     cleanup;
   fi;
   unmount_all;
@@ -49,27 +52,27 @@ cleanup;
 mkdir -p /tmp/anykernel/bin;
 cd /tmp/anykernel;
 unzip -o "$ZIPFILE";
-if [ $? != 0 -o -z "$(ls /tmp/anykernel/tools)" ]; then
+if [ $? != 0 -o -z "$(ls tools)" ]; then
   abort "Unzip failed. Aborting...";
 fi;
 bb=/tmp/anykernel/tools/busybox;
 chmod 755 $bb;
-$bb chmod -R 755 /tmp/anykernel/tools /tmp/anykernel/bin;
+$bb chmod -R 755 tools bin;
 
-if [ -f /tmp/anykernel/banner ]; then
+if [ -f banner ]; then
   while IFS='' read -r line || $bb [[ -n "$line" ]]; do
     ui_print "$line";
-  done < /tmp/anykernel/banner;
+  done < banner;
   ui_print " ";
   ui_print " ";
 fi;
 
-ui_print "$(file_getprop /tmp/anykernel/anykernel.sh kernel.string)";
-if [ -f /tmp/anykernel/version ]; then
+ui_print "$(file_getprop anykernel.sh kernel.string)";
+if [ -f version ]; then
   ui_print " ";
   while IFS='' read -r line || $bb [[ -n "$line" ]]; do
     ui_print "$line";
-  done < /tmp/anykernel/version;
+  done < version;
   ui_print " ";
 fi;
 ui_print " ";
@@ -87,7 +90,6 @@ if [ -f /system/system/build.prop ]; then
   mkdir /system_root 2>/dev/null;
   $bb mount -o ro -t auto /dev/block/bootdevice/by-name/system /system_root;
   $bb mount -o bind /system_root/system /system;
-  unset root;
 fi;
 savedpath="$LD_LIBRARY_PATH";
 savedpre="$LD_PRELOAD";
@@ -106,12 +108,11 @@ elif [ ! "$(getprop ro.product.device 2>/dev/null)" -a ! "$(getprop ro.build.pro
   }
 fi;
 
-if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.devicecheck)" == 1 ]; then
+if [ "$(file_getprop anykernel.sh do.devicecheck)" == 1 ]; then
   ui_print "Checking device...";
   device="$(getprop ro.product.device)";
   product="$(getprop ro.build.product)";
-  for testname in $(file_getprop /tmp/anykernel/anykernel.sh 'device.name.*'); do
-    test "$testname" || break;
+  for testname in $(file_getprop anykernel.sh 'device.name.*'); do
     if [ "$device" == "$testname" -o "$product" == "$testname" ]; then
       ui_print "$testname";
       match=1;
@@ -126,17 +127,17 @@ fi;
 
 ui_print "Installing...";
 for i in $($bb --list); do
-  $bb ln -s $bb /tmp/anykernel/bin/$i;
+  $bb ln -s $bb bin/$i;
 done;
-if [ $? != 0 -o -z "$(ls /tmp/anykernel/bin)" ]; then
+if [ $? != 0 -o -z "$(ls bin)" ]; then
   abort "Recovery busybox setup failed. Aborting...";
 fi;
-PATH="/tmp/anykernel/bin:$PATH" $bb ash /tmp/anykernel/anykernel.sh $2;
-if [ $? != "0" ]; then
+PATH="/tmp/anykernel/bin:$PATH" $bb ash anykernel.sh $2;
+if [ $? != 0 ]; then
   abort;
 fi;
 
-if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.modules)" == 1 ]; then
+if [ "$(file_getprop anykernel.sh do.modules)" == 1 ]; then
   ui_print " ";
   ui_print "Pushing modules...";
   $bb mount -o rw,remount -t auto /system;
@@ -170,7 +171,7 @@ fi;
 
 debugging;
 
-if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.cleanup)" == 1 ]; then
+if [ "$(file_getprop anykernel.sh do.cleanup)" == 1 ]; then
   cleanup;
 fi;
 

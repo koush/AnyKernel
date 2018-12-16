@@ -19,6 +19,7 @@ do.cleanuponabort=0
 device.name1=maguro
 device.name2=toro
 device.name3=toroplus
+supported.versions=6.0 - 7.1.2
 
 block=/dev/block/platform/omap/omap_hsmmc.0/by-name/boot;
 is_slot_device=0;
@@ -32,6 +33,8 @@ __do.modules=1__ will push the contents of the module directory to the same loca
 __do.cleanup=0__ will keep the zip from removing it's working directory in /tmp/anykernel - this can be useful if trying to debug in adb shell whether the patches worked correctly.
 
 __do.cleanuponabort=0__ will keep the zip from removing it's working directory in /tmp/anykernel in case of installation abort.
+
+__supported.versions__ will match against ro.build.version.release from the current ROM's build.prop. It can be set to a list or range. As a list, e.g. `7.1.1` or `7.1.2, 8.1, 9` it will look for exact matches, as a range, e.g. `7.1.2 - 9` it will check to make sure the current version falls within those limits. Whitespace optional, and supplied version values should be in the same number format they are in build.prop value for that Android version.
 
 `block=auto` instead of a direct block filepath enables detection of the device boot partition for use with broad, device non-specific zips. Also accepts specifically `boot` or `recovery`.
 

@@ -14,6 +14,7 @@ device.name2=toro
 device.name3=toroplus
 device.name4=
 device.name5=
+supported.versions=
 '; } # end properties
 
 # shell variables

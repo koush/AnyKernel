@@ -355,10 +355,11 @@ backup_file() { test ! -f $1~ && cp $1 $1~; }
 # restore_file <file>
 restore_file() { test -f $1~ && mv -f $1~ $1; }
 
-# replace_string <file> <if search string> <original string> <replacement string>
+# replace_string <file> <if search string> <original string> <replacement string> <scope>
 replace_string() {
+  test "$5" == "global" && local scope=g;
   if [ -z "$(grep "$2" $1)" ]; then
-    sed -i "s;${3};${4};" $1;
+    sed -i "s;${3};${4};${scope}" $1;
   fi;
 }
 

@@ -1,4 +1,6 @@
 ## AnyKernel methods (DO NOT CHANGE)
+# osm0sis @ xda-developers
+
 # set up extracted files and directories
 ramdisk=/tmp/anykernel/ramdisk;
 bin=/tmp/anykernel/tools;

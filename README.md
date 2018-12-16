@@ -25,7 +25,7 @@ is_slot_device=0;
 ramdisk_compression=auto;
 ```
 
-__do.devicecheck=1__ specified requires at least device.name1 to be present. This should match ro.product.device or ro.build.product for your device. There is support for as many device.name# properties as needed.
+__do.devicecheck=1__ specified requires at least device.name1 to be present. This should match ro.product.device or ro.build.product for your device. There is support for as many device.name# properties as needed. You may remove any empty ones that aren't being used.
 
 __do.modules=1__ will push the contents of the module directory to the same location relative to root (/) and apply 644 permissions.
 
@@ -46,7 +46,7 @@ split_boot
 unpack_ramdisk
 backup_file <file>
 restore_file <file>
-replace_string <file> <if search string> <original string> <replacement string>
+replace_string <file> <if search string> <original string> <replacement string> <scope>
 replace_section <file> <begin search string> <end search string> <replacement string>
 remove_section <file> <begin search string> <end search string>
 insert_line <file> <if search string> <before|after> <line match string> <inserted line>
@@ -70,6 +70,8 @@ flash_dtbo
 __"if search string"__ is the string it looks for to decide whether it needs to add the tweak or not, so generally something to indicate the tweak already exists. __"cmdline entry name"__ behaves somewhat like this as a match check for the name of the cmdline entry to be changed/added by the _patch_cmdline_ function, followed by the full entry to replace it. __"prop name"__ also serves as a match check in _patch_prop_ for a property in the given prop file, but is only the prop name as the prop value is specified separately.
 
 Similarly, __"line match string"__ and __"line replace string"__ are the search strings that locate where the modification needs to be made for those commands, __"begin search string"__ and __"end search string"__ are both required to select the first and last lines of the script block to be replaced for _replace_section_, and __"mount match name"__ and __"fs match type"__ are both required to narrow the _patch_fstab_ command down to the correct entry.
+
+__"scope"__ may be specified as __"global"__ to force all instances of the string targeted by _replace_string_ to be replaced. Omitted or set to anything else and it will perform the default first-match replacement.
 
 __"before|after"__ requires you simply specify __"before"__ or __"after"__ for the placement of the inserted line, in relation to __"line match string"__.
 

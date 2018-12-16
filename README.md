@@ -34,7 +34,7 @@ __do.cleanup=0__ will keep the zip from removing it's working directory in /tmp/
 
 __do.cleanuponabort=0__ will keep the zip from removing it's working directory in /tmp/anykernel in case of installation abort.
 
-__supported.versions__ will match against ro.build.version.release from the current ROM's build.prop. It can be set to a list or range. As a list, e.g. `7.1.1` or `7.1.2, 8.1, 9` it will look for exact matches, as a range, e.g. `7.1.2 - 9` it will check to make sure the current version falls within those limits. Whitespace optional, and supplied version values should be in the same number format they are in build.prop value for that Android version.
+__supported.versions=__ will match against ro.build.version.release from the current ROM's build.prop. It can be set to a list or range. As a list, e.g. `7.1.2` or `8.1.0, 9` it will look for exact matches, as a range, e.g. `7.1.2 - 9` it will check to make sure the current version falls within those limits. Whitespace optional, and supplied version values should be in the same number format they are in the build.prop value for that Android version.
 
 `block=auto` instead of a direct block filepath enables detection of the device boot partition for use with broad, device non-specific zips. Also accepts specifically `boot` or `recovery`.
 

@@ -27,6 +27,7 @@ debugging() {
     ;;
   esac;
 }
+is_mounted() { $bb mount | $bb grep " $1 "; }
 unmount_all() {
   (umount /system;
   if [ -d /system_root -a ! -f /system/build.prop ]; then
@@ -81,13 +82,15 @@ ui_print " ";
 ui_print " ";
 
 unmount_all;
-$bb mount -o ro -t auto /system;
-$bb mount -o ro -t auto /vendor 2>/dev/null;
-$bb mount /data 2>/dev/null;
+if [ ! "$(is_mounted /system)" ]; then
+  $bb mount -o ro -t auto /system;
+fi;
+($bb mount -o ro -t auto /vendor;
+$bb mount /data) 2>/dev/null;
 if [ -f /system/system/build.prop ]; then
   umount /system;
-  umount /system 2>/dev/null;
-  mkdir /system_root 2>/dev/null;
+  (umount /system;
+  mkdir /system_root) 2>/dev/null;
   $bb mount -o ro -t auto /dev/block/bootdevice/by-name/system /system_root;
   $bb mount -o bind /system_root/system /system;
 fi;
@@ -171,24 +174,25 @@ if [ "$(file_getprop anykernel.sh do.modules)" == 1 ]; then
   $bb mount -o rw,remount -t auto /vendor 2>/dev/null;
   cd /tmp/anykernel/modules;
   for module in $(find . -name '*.ko'); do
-    if [ ! -e /$module ]; then
+    modtarget=$(echo $module | $bb cut -c2-);
+    if [ ! -e $modtarget ]; then
       case $module in
-        */vendor/*) mod=vendor;;
-        *) mod=system;;
+        */vendor/*) modcon=vendor;;
+        *) modcon=system;;
       esac;
     fi;
-    if [ "$($bb mount | $bb grep " $(echo $module | $bb cut -c2-) ")" ]; then
-      $bb mount -o rw,remount -t auto /$module;
+    if [ "$(is_mounted $modtarget)" ]; then
+      $bb mount -o rw,remount -t auto $modtarget;
     fi;
-    mkdir -p $(dirname /$module);
-    $bb cp -rLf $module /$module;
-    $bb chown 0:0 /$module;
-    $bb chmod 644 /$module;
-    if [ "$mod" ]; then
-      chcon "u:object_r:${mod}_file:s0" /$module;
+    mkdir -p $(dirname $modtarget);
+    $bb cp -rLf $module $modtarget;
+    $bb chown 0:0 $modtarget;
+    $bb chmod 644 $modtarget;
+    if [ "$modcon" ]; then
+      chcon "u:object_r:${modcon}_file:s0" $modtarget;
     fi;
-    if [ "$($bb mount | $bb grep " $(echo $module | $bb cut -c2-) ")" ]; then
-      $bb mount -o ro,remount -t auto /$module;
+    if [ "$(is_mounted $modtarget)" ]; then
+      $bb mount -o ro,remount -t auto $modtarget;
     fi;
   done;
   cd /tmp/anykernel;

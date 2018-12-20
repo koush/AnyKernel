@@ -128,6 +128,7 @@ if [ "$(file_getprop anykernel.sh do.devicecheck)" == 1 ]; then
   fi;
 fi;
 
+int2float() { test "$1" -eq "$1" 2>/dev/null && $bb printf '%0.1f\n' "$1" || echo "$1"; }
 supported_ver="$(file_getprop anykernel.sh supported.versions | $bb tr -d '[:space:]')";
 if [ "$supported_ver" ]; then
   ui_print "Checking Android version...";
@@ -135,12 +136,12 @@ if [ "$supported_ver" ]; then
   if [ "$(echo $supported_ver | $bb grep -)" ]; then
     lo_ver=$(echo $supported_ver | $bb cut -d- -f1);
     hi_ver=$(echo $supported_ver | $bb cut -d- -f2);
-    if [ "$(echo -e "$hi_ver\n$lo_ver\n$android_ver" | $bb sort -g | $bb grep -n "$android_ver" | $bb grep '^2:')" ]; then
+    if [ "$(echo -e "$(int2float $hi_ver)\n$(int2float $lo_ver)\n$(int2float $android_ver)" | $bb sort -g | $bb grep -n "$(int2float $android_ver)" | $bb grep '^2:')" ]; then
       supported=1;
     fi;
   else
     for ver in $(echo $supported_ver | $bb sed 's;,; ;g'); do
-      if [ "$ver" == "$android_ver" ]; then
+      if [ "$(int2float $ver)" == "$(int2float $android_ver)" ]; then
         supported=1;
         break;
       fi;

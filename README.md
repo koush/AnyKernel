@@ -40,7 +40,7 @@ __supported.versions=__ will match against ro.build.version.release from the cur
 
 `is_slot_device=1` enables detection of the suffix for the active boot partition on slot-based devices and will add this to the end of the supplied `block=` path. Also accepts `auto` for use with broad, device non-specific zips.
 
-`ramdisk_compression=auto` allows automatically repacking the ramdisk with the format detected during unpack, changing `auto` to `gz`, `lzo`, `lzma`, `xz`, `bz2`, `lz4`, or `lz4-l` (for lz4 legacy) instead forces the repack as that format.
+`ramdisk_compression=auto` allows automatically repacking the ramdisk with the format detected during unpack. Changing `auto` to `gz`, `lzo`, `lzma`, `xz`, `bz2`, `lz4`, or `lz4-l` (for lz4 legacy) instead forces the repack as that format, and using `cpio` or `none` will force the repack as uncompressed.
 
 ## // Command Methods ##
 ```

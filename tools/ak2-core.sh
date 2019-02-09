@@ -170,7 +170,7 @@ repack_ramdisk() {
   cd /tmp/anykernel;
   if [ -f "$bin/mkmtkhdr" ]; then
     $bin/mkmtkhdr --rootfs ramdisk-new.cpio$compext;
-    mv -f ramdisk-new.cpio.$compext-mtk ramdisk-new.cpio$compext;
+    mv -f ramdisk-new.cpio$compext-mtk ramdisk-new.cpio$compext;
   fi;
 }
 flash_dtbo() {
@@ -259,8 +259,8 @@ flash_boot() {
     kernel=`ls *-zImage`;
     kernel=$split_img/$kernel;
   fi;
-  if [ -f /tmp/anykernel/ramdisk-new.cpio.* ]; then
-    rd=`echo /tmp/anykernel/ramdisk-new.cpio.*`;
+  if [ -f /tmp/anykernel/ramdisk-new.cpio* ]; then
+    rd=`echo /tmp/anykernel/ramdisk-new.cpio*`;
   else
     rd=`ls *-ramdisk.*`;
     rd="$split_img/$rd";

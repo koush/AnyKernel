@@ -35,7 +35,7 @@ reset_ak() {
 
 # dump boot and extract ramdisk
 split_boot() {
-  local nooktest nookoff dumpfail;
+  local nooktest nookoff uimgsize dumpfail;
   if [ ! -e "$(echo $block | cut -d\  -f1)" ]; then
     ui_print " "; ui_print "Invalid partition. Aborting..."; exit 1;
   fi;
@@ -63,6 +63,11 @@ split_boot() {
     $bin/unpackelf -i /tmp/anykernel/boot.img -o $split_img;
     mv -f $split_img/boot.img-ramdisk.cpio.gz $split_img/boot.img-ramdisk.gz;
   elif [ -f "$bin/dumpimage" ]; then
+    uimgsize=$(($(printf '%d\n' 0x$(hexdump -n 4 -s 12 -e '16/1 "%02x""\n"' /tmp/anykernel/boot.img)) + 64));
+    if [ "$(wc -c < /tmp/anykernel/boot.img)" != "$uimgsize" ]; then
+      mv -f /tmp/anykernel/boot.img /tmp/anykernel/boot-orig.img;
+      dd bs=$uimgsize count=1 conv=notrunc if=/tmp/anykernel/boot-orig.img of=/tmp/anykernel/boot.img;
+    fi;
     $bin/dumpimage -l /tmp/anykernel/boot.img;
     $bin/dumpimage -l /tmp/anykernel/boot.img > $split_img/boot.img-header;
     grep "Name:" $split_img/boot.img-header | cut -c15- > $split_img/boot.img-name;

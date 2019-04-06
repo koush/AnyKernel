@@ -39,10 +39,16 @@ split_boot() {
   if [ ! -e "$(echo $block | cut -d\  -f1)" ]; then
     ui_print " "; ui_print "Invalid partition. Aborting..."; exit 1;
   fi;
+  if [ "$(echo $block | cut -d\  -f2-)" ]; then
+    block=$(echo $block | cut -d\  -f1);
+    customdd=$(echo $block | cut -d\  -f2-);
+  elif [ ! "$customdd" ]; then
+    local customdd="bs=1048576";
+  fi;
   if [ -f "$bin/nanddump" ]; then
     $bin/nanddump -f /tmp/anykernel/boot.img $block;
   else
-    dd if=$block of=/tmp/anykernel/boot.img bs=1048576;
+    dd if=$block of=/tmp/anykernel/boot.img $customdd;
   fi;
   nooktest=$(strings /tmp/anykernel/boot.img | grep -E 'Red Loader|Green Loader|Green Recovery|eMMC boot.img|eMMC recovery.img|BauwksBoot');
   if [ "$nooktest" ]; then
@@ -356,6 +362,9 @@ flash_boot() {
   if [ -f "$bin/flash_erase" -a -f "$bin/nandwrite" ]; then
     $bin/flash_erase $block 0 0;
     $bin/nandwrite -p $block /tmp/anykernel/boot-new.img;
+  elif [ "$customdd" ]; then
+    dd if=/dev/zero of=$block $customdd 2>/dev/null;
+    dd if=/tmp/anykernel/boot-new.img of=$block $customdd;
   else
     cat /tmp/anykernel/boot-new.img /dev/zero > $block 2>/dev/null;
   fi;

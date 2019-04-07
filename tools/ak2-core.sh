@@ -39,7 +39,7 @@ split_boot() {
   if [ ! -e "$(echo $block | cut -d\  -f1)" ]; then
     ui_print " "; ui_print "Invalid partition. Aborting..."; exit 1;
   fi;
-  if [ "$(echo $block | cut -d\  -f2-)" ]; then
+  if [ "$(echo $block | grep ' ')" ]; then
     block=$(echo $block | cut -d\  -f1);
     customdd=$(echo $block | cut -d\  -f2-);
   elif [ ! "$customdd" ]; then

@@ -83,10 +83,10 @@ split_boot() {
     grep "Type:" $split_img/boot.img-header | cut -d\( -f2 | cut -d\) -f1 | cut -d\  -f1 | cut -d- -f1 > $split_img/boot.img-comp;
     grep "Address:" $split_img/boot.img-header | cut -c15- > $split_img/boot.img-addr;
     grep "Point:" $split_img/boot.img-header | cut -c15- > $split_img/boot.img-ep;
-    $bin/dumpimage -i /tmp/anykernel/boot.img -p 0 $split_img/boot.img-zImage;
+    $bin/dumpimage -p 0 -o $split_img/boot.img-zImage /tmp/anykernel/boot.img;
     test $? != 0 && dumpfail=1;
     if [ "$(cat $split_img/boot.img-type)" == "Multi" ]; then
-      $bin/dumpimage -i /tmp/anykernel/boot.img -p 1 $split_img/boot.img-ramdisk.gz;
+      $bin/dumpimage -p 1 -o $split_img/boot.img-ramdisk.gz /tmp/anykernel/boot.img;
     fi;
     test $? != 0 && dumpfail=1;
   elif [ -f "$bin/rkcrc" ]; then

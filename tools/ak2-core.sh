@@ -99,13 +99,13 @@ split_boot() {
   if [ $? != 0 -o "$dumpfail" ]; then
     ui_print " "; ui_print "Dumping/splitting image failed. Aborting..."; exit 1;
   fi;
-  if [ -f "$bin/unpackelf" -a -f "$split_img/boot.img-dtb" ]; then
-    case $(od -ta -An -N4 $split_img/boot.img-dtb | sed -e 's/del //' -e 's/   //g') in
+  if [ -f "$bin/unpackelf" -a -f "$split_img/boot.img-dt" ]; then
+    case $(od -ta -An -N4 $split_img/boot.img-dt | sed -e 's/del //' -e 's/   //g') in
       QCDT|ELF) ;;
       *) gzip $split_img/boot.img-zImage;
          mv -f $split_img/boot.img-zImage.gz $split_img/boot.img-zImage;
-         cat $split_img/boot.img-dtb >> $split_img/boot.img-zImage;
-         rm -f $split_img/boot.img-dtb;;
+         cat $split_img/boot.img-dt >> $split_img/boot.img-zImage;
+         rm -f $split_img/boot.img-dt;;
     esac;
   fi;
 }
@@ -205,7 +205,7 @@ flash_dtbo() {
   fi;
 }
 flash_boot() {
-  local name arch os type comp addr ep cmdline cmd board base pagesize kerneloff ramdiskoff tagsoff osver oslvl second secondoff hash unknown i kernel rd dtb rpm pk8 cert avbtype dtbo dtbo_block;
+  local name arch os type comp addr ep cmdline cmd board base pagesize kerneloff ramdiskoff tagsoff dtboff osver oslvl hdrver second secondoff recoverydtbo hash unknown i kernel rd dtb dt rpm pk8 cert avbtype dtbo dtbo_block;
   cd $split_img;
   if [ -f "$bin/mkimage" ]; then
     name=`cat *-name`;
@@ -230,6 +230,10 @@ flash_boot() {
     ramdiskoff=`cat *-ramdiskoff`;
     if [ -f *-tagsoff ]; then
       tagsoff=`cat *-tagsoff`;
+    fi;
+    if [ -f *-dtboff ]; then
+      dtboff=`cat *-dtboff`;
+      dtboff="--dtb_offset $dtboff";
     fi;
     if [ -f *-osversion ]; then
       osver=`cat *-osversion`;
@@ -275,17 +279,27 @@ flash_boot() {
     rd=`ls *-ramdisk.*`;
     rd="$split_img/$rd";
   fi;
-  for i in dtb dt.img; do
+  for i in dtb dtb.img; do
     if [ -f /tmp/anykernel/$i ]; then
-      dtb="--dt /tmp/anykernel/$i";
-      rpm="/tmp/anykernel/$i,rpm";
+      dtb="--dtb /tmp/anykernel/$i";
       break;
     fi;
   done;
   if [ ! "$dtb" -a -f *-dtb ]; then
     dtb=`ls *-dtb`;
-    rpm="$split_img/$dtb,rpm";
-    dtb="--dt $split_img/$dtb";
+    dtb="--dtb $split_img/$dtb";
+  fi;
+  for i in dt dt.img; do
+    if [ -f /tmp/anykernel/$i ]; then
+      dt="--dt /tmp/anykernel/$i";
+      rpm="/tmp/anykernel/$i,rpm";
+      break;
+    fi;
+  done;
+  if [ ! "$dt" -a -f *-dt ]; then
+    dt=`ls *-dt`;
+    rpm="$split_img/$dt,rpm";
+    dt="--dt $split_img/$dt";
   fi;
   cd /tmp/anykernel;
   if [ -f "$bin/mkmtkhdr" ]; then
@@ -302,9 +316,9 @@ flash_boot() {
   elif [ -f "$bin/rkcrc" ]; then
     $bin/rkcrc -k $rd boot-new.img;
   elif [ -f "$bin/pxa-mkbootimg" ]; then
-    $bin/pxa-mkbootimg --kernel $kernel --ramdisk $rd $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset "$tagsoff" --unknown $unknown $dtb --output boot-new.img;
+    $bin/pxa-mkbootimg --kernel $kernel --ramdisk $rd $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset "$tagsoff" --unknown $unknown $dt --output boot-new.img;
   else
-    $bin/mkbootimg --kernel $kernel --ramdisk $rd $second $recoverydtbo --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset "$tagsoff" --os_version "$osver" --os_patch_level "$oslvl" --header_version "$hdrver" $hash $dtb --output boot-new.img;
+    $bin/mkbootimg --kernel $kernel --ramdisk $rd $second $dtb $recoverydtbo --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset "$tagsoff" $dtboff --os_version "$osver" --os_patch_level "$oslvl" --header_version "$hdrver" $hash $dt --output boot-new.img;
   fi;
   if [ $? != 0 ]; then
     ui_print " "; ui_print "Repacking image failed. Aborting..."; exit 1;

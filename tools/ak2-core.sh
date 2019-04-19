@@ -69,6 +69,12 @@ split_boot() {
     $bin/unpackelf -i /tmp/anykernel/boot.img -o $split_img;
     test $? != 0 && dumpfail=1;
     mv -f $split_img/boot.img-ramdisk.cpio.gz $split_img/boot.img-ramdisk.gz;
+  elif [ -f "$bin/mboot" ]; then
+    $bin/mboot -u -f /tmp/anykernel/boot.img -d $split_img;
+    test $? != 0 && dumpfail=1;
+    mv -f $split_img/cmdline.txt $split_img/boot.img-cmdline;
+    mv -f $split_img/kernel $split_img/boot.img-zImage;
+    mv -f $split_img/ramdisk.cpio.gz $split_img/boot.img-ramdisk.gz;
   elif [ -f "$bin/dumpimage" ]; then
     uimgsize=$(($(printf '%d\n' 0x$(hexdump -n 4 -s 12 -e '16/1 "%02x""\n"' /tmp/anykernel/boot.img)) + 64));
     if [ "$(wc -c < /tmp/anykernel/boot.img)" != "$uimgsize" ]; then
@@ -314,6 +320,11 @@ flash_boot() {
     $bin/mkimage -A $arch -O $os -T $type -C $comp -a $addr -e $ep -n "$name" -d $kernel$uramdisk boot-new.img;
   elif [ -f "$bin/elftool" ]; then
     $bin/elftool pack -o boot-new.img header=$split_img/boot.img-header $kernel $rd,ramdisk $rpm $cmd;
+  elif [ -f "$bin/mboot" ]; then
+    cp -f $split_img/boot.img-cmdline $split_img/cmdline.txt;
+    cp -f $kernel $split_img/kernel;
+    cp -f $rd $split_img/ramdisk.cpio.gz;
+    $bin/mboot -d $split_img -f boot-new.img;
   elif [ -f "$bin/rkcrc" ]; then
     $bin/rkcrc -k $rd boot-new.img;
   elif [ -f "$bin/pxa-mkbootimg" ]; then

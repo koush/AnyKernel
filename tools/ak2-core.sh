@@ -67,6 +67,7 @@ split_boot() {
       cp -f $split_img/elftool_out/header $split_img/boot.img-header;
     fi;
     $bin/unpackelf -i /tmp/anykernel/boot.img -o $split_img;
+    test $? != 0 && dumpfail=1;
     mv -f $split_img/boot.img-ramdisk.cpio.gz $split_img/boot.img-ramdisk.gz;
   elif [ -f "$bin/dumpimage" ]; then
     uimgsize=$(($(printf '%d\n' 0x$(hexdump -n 4 -s 12 -e '16/1 "%02x""\n"' /tmp/anykernel/boot.img)) + 64));
@@ -87,8 +88,8 @@ split_boot() {
     test $? != 0 && dumpfail=1;
     if [ "$(cat $split_img/boot.img-type)" == "Multi" ]; then
       $bin/dumpimage -p 1 -o $split_img/boot.img-ramdisk.gz /tmp/anykernel/boot.img;
+      test $? != 0 && dumpfail=1;
     fi;
-    test $? != 0 && dumpfail=1;
   elif [ -f "$bin/rkcrc" ]; then
     dd bs=4096 skip=8 iflag=skip_bytes conv=notrunc if=/tmp/anykernel/boot.img of=$split_img/boot.img-ramdisk.gz;
   elif [ -f "$bin/pxa-unpackbootimg" ]; then

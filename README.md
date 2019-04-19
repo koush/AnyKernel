@@ -7,7 +7,7 @@ AnyKernel2 - Flashable Zip Template for Kernel Releases with Ramdisk Modificatio
 
 AnyKernel2 pushes the format even further by allowing kernel developers to modify the underlying ramdisk for kernel feature support easily using a number of included command methods along with properties and variables.
 
-A working script based on DirtyV Kernel for Galaxy Nexus (tuna) is included for reference.
+_A working script based on Galaxy Nexus (tuna) is included for reference._
 
 ## // Properties / Variables ##
 ```
@@ -41,6 +41,9 @@ __supported.versions=__ will match against ro.build.version.release from the cur
 `is_slot_device=1` enables detection of the suffix for the active boot partition on slot-based devices and will add this to the end of the supplied `block=` path. Also accepts `auto` for use with broad, device non-specific zips.
 
 `ramdisk_compression=auto` allows automatically repacking the ramdisk with the format detected during unpack. Changing `auto` to `gz`, `lzo`, `lzma`, `xz`, `bz2`, `lz4`, or `lz4-l` (for lz4 legacy) instead forces the repack as that format, and using `cpio` or `none` will force the repack as uncompressed.
+
+`customdd="<arguments>"` may be added to allow specifying additional dd parameters for 
+devices that need to hack their kernel directly into a large partition like mmcblk0.
 
 ## // Command Methods ##
 ```
@@ -100,6 +103,7 @@ Optional supported binaries which may be placed in /tools to enable built-in exp
 * `flash_erase`, `nanddump`, `nandwrite` - MTD block device support for devices where the `dd` command is not sufficient
 * `pxa-unpackbootimg`, `pxa-mkbootimg` - Samsung/Marvell PXA1088/PXA1908 boot.img format variant support
 * `dumpimage`, `mkimage` - DENX U-Boot uImage format support
+* `mboot` - Intel OSIP Android image format support
 * `unpackelf` - Sony ELF kernel.elf format support, repacking as AOSP standard boot.img for unlocked bootloaders
 * `elftool`, `unpackelf` - Sony ELF kernel.elf format support, repacking as ELF for older Sony devices
 * `mkmtkhdr` - MTK device boot image section headers support
@@ -111,7 +115,7 @@ Optional supported binaries which may be placed in /tools to enable built-in exp
 
 ## // Instructions ##
 
-1. Place zImage in the root (dtb and/or dtbo should also go here for devices that require custom ones, each will fallback to the original if not included)
+1. Place zImage in the root (dt or dtb, and/or dtbo should also go here for devices that require custom ones, each will fallback to the original if not included)
 
 2. Place any required ramdisk files in /ramdisk and modules in /modules (with the full path like /modules/system/lib/modules)
 
@@ -129,7 +133,7 @@ Not required, but any tweaks you can't hardcode into the source (best practice) 
 
 It is also extremely important to note that for the broadest AK2 compatibility it is always better to modify a ramdisk file rather than replace it.
 
-If running into trouble when flashing an AK2 zip, the suffix -debugging may be added to the zip's filename to enable creation of a debug .tgz of /tmp for later examination while booted or on desktop.
+___If running into trouble when flashing an AK2 zip, the suffix -debugging may be added to the zip's filename to enable creation of a debug .tgz of /tmp for later examination while booted or on desktop.___
 
 For further support and usage examples please see the AnyKernel2 XDA thread: https://forum.xda-developers.com/showthread.php?t=2670512
 

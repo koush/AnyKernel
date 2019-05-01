@@ -92,10 +92,11 @@ split_boot() {
     grep "Point:" $split_img/boot.img-header | cut -c15- > $split_img/boot.img-ep;
     $bin/dumpimage -p 0 -o $split_img/boot.img-zImage /tmp/anykernel/boot.img;
     test $? != 0 && dumpfail=1;
-    if [ "$(cat $split_img/boot.img-type)" == "Multi" ]; then
-      $bin/dumpimage -p 1 -o $split_img/boot.img-ramdisk.gz /tmp/anykernel/boot.img;
-      test $? != 0 && dumpfail=1;
-    fi;
+    case $(cat $split_img/boot.img-type) in
+      Multi) $bin/dumpimage -p 1 -o $split_img/boot.img-ramdisk.gz /tmp/anykernel/boot.img;;
+      RAMDisk) mv -f $split_img/boot.img-zImage $split_img/boot.img-ramdisk.gz;;
+    esac;
+    test $? != 0 && dumpfail=1;
   elif [ -f "$bin/rkcrc" ]; then
     dd bs=4096 skip=8 iflag=skip_bytes conv=notrunc if=/tmp/anykernel/boot.img of=$split_img/boot.img-ramdisk.gz;
   elif [ -f "$bin/pxa-unpackbootimg" ]; then
@@ -212,7 +213,7 @@ flash_dtbo() {
   fi;
 }
 flash_boot() {
-  local name arch os type comp addr ep cmdline cmd board base pagesize kerneloff ramdiskoff tagsoff dtboff osver oslvl hdrver second secondoff recoverydtbo hash unknown i kernel rd dtb dt rpm pk8 cert avbtype dtbo dtbo_block;
+  local name arch os type comp addr ep cmdline cmd board base pagesize kerneloff ramdiskoff tagsoff dtboff osver oslvl hdrver second secondoff recoverydtbo hash unknown i kernel rd dtb dt rpm part0 part1 pk8 cert avbtype dtbo dtbo_block;
   cd $split_img;
   if [ -f "$bin/mkimage" ]; then
     name=`cat *-name`;
@@ -316,8 +317,12 @@ flash_boot() {
     esac;
   fi;
   if [ -f "$bin/mkimage" ]; then
-    test "$type" == "Multi" && uramdisk=":$rd";
-    $bin/mkimage -A $arch -O $os -T $type -C $comp -a $addr -e $ep -n "$name" -d $kernel$uramdisk boot-new.img;
+    part0=$kernel;
+    case $type in
+      Multi) part1=":$rd";;
+      RAMDisk) part0=$rd;;
+    esac;
+    $bin/mkimage -A $arch -O $os -T $type -C $comp -a $addr -e $ep -n "$name" -d $part0$part1 boot-new.img;
   elif [ -f "$bin/elftool" ]; then
     $bin/elftool pack -o boot-new.img header=$split_img/boot.img-header $kernel $rd,ramdisk $rpm $cmd;
   elif [ -f "$bin/mboot" ]; then

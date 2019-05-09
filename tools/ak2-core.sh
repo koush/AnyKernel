@@ -22,14 +22,21 @@ contains() { test "${1#*$2}" != "$1" && return 0 || return 1; }
 # file_getprop <file> <property>
 file_getprop() { grep "^$2=" "$1" | cut -d= -f2-; }
 
-# reset anykernel directory
+# reset_ak [keep]
 reset_ak() {
   local i;
-  rm -rf $(dirname /tmp/anykernel/*-files/current)/ramdisk;
-  for i in $ramdisk $split_img /tmp/anykernel/rdtmp /tmp/anykernel/boot.img /tmp/anykernel/*-new*; do
-    cp -af $i $(dirname /tmp/anykernel/*-files/current);
-  done;
-  rm -rf $ramdisk $split_img $patch /tmp/anykernel/rdtmp /tmp/anykernel/boot.img /tmp/anykernel/*-new* /tmp/anykernel/*-files/current;
+  if [ ! "$1" == "keep" ]; then
+    rm -rf $(dirname /tmp/anykernel/*-files/current)/ramdisk;
+    for i in $ramdisk $split_img /tmp/anykernel/rdtmp /tmp/anykernel/boot.img /tmp/anykernel/*-new*; do
+      cp -af $i $(dirname /tmp/anykernel/*-files/current);
+    done;
+  fi;
+  rm -rf $ramdisk $split_img /tmp/anykernel/boot.img /tmp/anykernel/*-new* /tmp/anykernel/*-files/current;
+  if [ "$1" == "keep" ]; then
+    mv -f /tmp/anykernel/rdtmp $ramdisk;
+  else
+    rm -rf $patch /tmp/anykernel/rdtmp;
+  fi;
   . /tmp/anykernel/tools/ak2-core.sh $FD;
 }
 
@@ -608,6 +615,16 @@ case $is_slot_device in
       slot=$(getprop ro.boot.slot 2>/dev/null);
       test ! "$slot" && slot=$(grep -o 'androidboot.slot=.*$' /proc/cmdline | cut -d\  -f1 | cut -d= -f2);
       test "$slot" && slot=_$slot;
+    fi;
+    if [ "$slot" ]; then
+      case $slot_select in
+        inactive)
+          case $slot in
+            _a) slot=_b;;
+            _b) slot=_a;;
+          ;;
+        ;;
+      esac;
     fi;
     if [ ! "$slot" -a "$is_slot_device" == 1 ]; then
       ui_print " "; ui_print "Unable to determine active boot slot. Aborting..."; exit 1;

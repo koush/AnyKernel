@@ -69,9 +69,9 @@ patch_prop <prop file> <prop name> <new prop value>
 patch_ueventd <ueventd file> <device node> <permissions> <chown> <chgrp>
 repack_ramdisk
 flash_boot
+flash_dtbo
 write_boot
 reset_ak [keep]
-flash_dtbo
 ```
 
 __"if search string"__ is the string it looks for to decide whether it needs to add the tweak or not, so generally something to indicate the tweak already exists. __"cmdline entry name"__ behaves somewhat like this as a match check for the name of the cmdline entry to be changed/added by the _patch_cmdline_ function, followed by the full entry to replace it. __"prop name"__ also serves as a match check in _patch_prop_ for a property in the given prop file, but is only the prop name as the prop value is specified separately.
@@ -88,7 +88,7 @@ _dump_boot_ and _write_boot_ are the default method of unpacking/repacking, but 
 
 Multi-partition zips can be created by removing the ramdisk and patch folders from the zip and including instead "-files" folders named for the partition (without slot suffix), e.g. boot-files + recovery-files, or kernel-files + ramdisk-files (on some Treble devices). These then contain zImage, and ramdisk, patch, etc. subfolders for each partition. To setup for the next partition, simply set `block=` (without slot suffix) and `ramdisk_compression=` for the new target partition and use the _reset_ak_ command.
 
-Similarly, multi-slot zips can be created with the normal zip layout for the active (current) slot, then resetting for the inactive slot by setting `block=` (without slot suffix) again, `slot_select=inactive` and `ramdisk_compression=` for the target slot and using the _reset_ak keep_ command, which will retain the patch and AK2 added ramdisk files for the next slot.
+Similarly, multi-slot zips can be created with the normal zip layout for the active (current) slot, then resetting for the inactive slot by setting `block=` (without slot suffix) again, `slot_select=inactive` and `ramdisk_compression=` for the target slot and using the _reset_ak keep_ command, which will retain the patch and any added ramdisk files for the next slot.
 
 _backup_file_ may be used for testing to ensure ramdisk changes are made correctly, transparency for the end-user, or in a ramdisk-only "mod" zip. In the latter case _restore_file_ could also be used to create a "restore" zip to undo the changes, but should be used with caution since the underlying patched files could be changed with ROM/kernel updates.
 

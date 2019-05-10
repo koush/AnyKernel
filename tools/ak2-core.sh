@@ -622,7 +622,7 @@ case $is_slot_device in
           case $slot in
             _a) slot=_b;;
             _b) slot=_a;;
-          ;;
+          esac;
         ;;
       esac;
     fi;

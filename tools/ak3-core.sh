@@ -201,7 +201,7 @@ repack_ramdisk() {
 
 # flash_boot (build, sign and write image only)
 flash_boot() {
-  local varlist kernel ramdisk part0 part1 pk8 cert avbtype;
+  local varlist kernel ramdisk cmdline part0 part1 pk8 cert avbtype;
 
   cd $split_img;
   if [ -f "$bin/mkimage" ]; then
@@ -258,7 +258,7 @@ flash_boot() {
     $bin/mkimage -A $arch -O $os -T $type -C $comp -a $addr -e $ep -n "$name" -d $part0$part1 $home/boot-new.img;
   elif [ -f "$bin/elftool" ]; then
     test "$dt" && dt="$dt,rpm";
-    test "$cmdline" && cmdline="cmdline.txt@cmdline";
+    test -f cmdline.txt && cmdline="cmdline.txt@cmdline";
     $bin/elftool pack -o $home/boot-new.img header=elftool_out/header $kernel $ramdisk,ramdisk $dt $cmdline;
   elif [ -f "$bin/mboot" ]; then
     cp -f $kernel kernel;

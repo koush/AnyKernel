@@ -1,11 +1,11 @@
 ----------------------------------------------------------------------------------
-AnyKernel2 - Flashable Zip Template for Kernel Releases with Ramdisk Modifications
+AnyKernel3 - Flashable Zip Template for Kernel Releases with Ramdisk Modifications
 ----------------------------------------------------------------------------------
 ### by osm0sis @ xda-developers ###
 
 "AnyKernel is a template for an update.zip that can apply any kernel to any ROM, regardless of ramdisk." - Koush
 
-AnyKernel2 pushes the format even further by allowing kernel developers to modify the underlying ramdisk for kernel feature support easily using a number of included command methods along with properties and variables.
+AnyKernel3 pushes the format even further by allowing kernel developers to modify the underlying ramdisk for kernel feature support easily using a number of included command methods along with properties and variables.
 
 _A working script based on Galaxy Nexus (tuna) is included for reference._
 
@@ -40,7 +40,7 @@ __supported.versions=__ will match against ro.build.version.release from the cur
 
 `is_slot_device=1` enables detection of the suffix for the active boot partition on slot-based devices and will add this to the end of the supplied `block=` path. Also accepts `auto` for use with broad, device non-specific zips.
 
-`ramdisk_compression=auto` allows automatically repacking the ramdisk with the format detected during unpack. Changing `auto` to `gz`, `lzo`, `lzma`, `xz`, `bz2`, `lz4`, or `lz4-l` (for lz4 legacy) instead forces the repack as that format, and using `cpio` or `none` will force the repack as uncompressed.
+`ramdisk_compression=auto` allows automatically repacking the ramdisk with the format detected during unpack. Changing `auto` to `gz`, `lzo`, `lzma`, `xz`, `bz2`, `lz4`, or `lz4-l` (for lz4 legacy) instead forces the repack as that format, and using `cpio` or `none` will (attempt to) force the repack as uncompressed.
 
 `customdd="<arguments>"` may be added to allow specifying additional dd parameters for devices that need to hack their kernel directly into a large partition like mmcblk0.
 
@@ -63,7 +63,7 @@ prepend_file <file> <if search string> <patch file>
 insert_file <file> <if search string> <before|after> <line match string> <patch file>
 append_file <file> <if search string> <patch file>
 replace_file <file> <permissions> <patch file>
-patch_fstab <fstab file> <mount match name> <fs match type> <block|mount|fstype|options|flags> <original string> <replacement string>
+patch_fstab <fstab file> <mount match name> <fs match type> block|mount|fstype|options|flags <original string> <replacement string>
 patch_cmdline <cmdline entry name> <replacement string>
 patch_prop <prop file> <prop name> <new prop value>
 patch_ueventd <ueventd file> <device node> <permissions> <chown> <chgrp>
@@ -72,6 +72,7 @@ flash_boot
 flash_dtbo
 write_boot
 reset_ak [keep]
+setup_ak
 ```
 
 __"if search string"__ is the string it looks for to decide whether it needs to add the tweak or not, so generally something to indicate the tweak already exists. __"cmdline entry name"__ behaves somewhat like this as a match check for the name of the cmdline entry to be changed/added by the _patch_cmdline_ function, followed by the full entry to replace it. __"prop name"__ also serves as a match check in _patch_prop_ for a property in the given prop file, but is only the prop name as the prop value is specified separately.
@@ -92,11 +93,11 @@ Similarly, multi-slot zips can be created with the normal zip layout for the act
 
 _backup_file_ may be used for testing to ensure ramdisk changes are made correctly, transparency for the end-user, or in a ramdisk-only "mod" zip. In the latter case _restore_file_ could also be used to create a "restore" zip to undo the changes, but should be used with caution since the underlying patched files could be changed with ROM/kernel updates.
 
-You may also use _ui_print "\<text\>"_ to write messages back to the recovery during the modification process, and _file_getprop "\<file\>" "\<property\>"_ and _contains "\<string\>" "\<substring\>"_ to simplify string testing logic you might want in your script.
+You may also use _ui_print "\<text\>"_ to write messages back to the recovery during the modification process, _abort "\<text>"_ to abort with optional message, and _file_getprop "\<file\>" "\<property\>"_ and _contains "\<string\>" "\<substring\>"_ to simplify string testing logic you might want in your script.
 
 ## // Binary Inclusion ##
 
-The AK2 repo includes my latest static ARM builds of `mkbootimg`, `unpackbootimg`,`busybox`, `xz` and `lz4` by default to keep the basic package small. Builds for other architectures and optional binaries (see below) are available from my latest AIK-mobile and FlashIt packages, respectively, here:
+The AK3 repo includes current ARM builds of `magiskboot`, `magiskpolicy` and `busybox` by default to keep the basic package small. Builds for other architectures and optional binaries (see below) are available from my latest AIK-mobile and FlashIt packages, respectively, here:
 
 https://forum.xda-developers.com/showthread.php?t=2073775 (Android Image Kitchen thread)  
 https://forum.xda-developers.com/showthread.php?t=2239421 (Odds and Ends thread)
@@ -104,21 +105,18 @@ https://forum.xda-developers.com/showthread.php?t=2239421 (Odds and Ends thread)
 Optional supported binaries which may be placed in /tools to enable built-in expanded functionality are as follows:
 * `mkbootfs` - for broken recoveries, or, booted flash support for a script/app via bind mount to /tmp (deprecated/use with caution)
 * `flash_erase`, `nanddump`, `nandwrite` - MTD block device support for devices where the `dd` command is not sufficient
-* `pxa-unpackbootimg`, `pxa-mkbootimg` - Samsung/Marvell PXA1088/PXA1908 boot.img format variant support
 * `dumpimage`, `mkimage` - DENX U-Boot uImage format support
 * `mboot` - Intel OSIP Android image format support
-* `unpackelf` - Sony ELF kernel.elf format support, repacking as AOSP standard boot.img for unlocked bootloaders
-* `elftool`, `unpackelf` - Sony ELF kernel.elf format support, repacking as ELF for older Sony devices
-* `mkmtkhdr` - MTK device boot image section headers support
+* `unpackelf`, `mkbootimg` - Sony ELF kernel.elf format support, repacking as AOSP standard boot.img for unlocked bootloaders
+* `elftool` (with `unpackelf`) - Sony ELF kernel.elf format support, repacking as ELF for older Sony devices
+* `mkmtkhdr` (with `unpackelf`) - MTK device boot image section headers support for Sony devices
 * `futility` + `chromeos` test keys directory - Google ChromeOS signature support
 * `BootSignature_Android.jar` + `avb` keys directory - Google Android Verified Boot (AVB) signature support
-* `blobpack` - Asus SignBlob signature support
-* `dhtbsign` - Samsung/Spreadtrum DHTB signature support
 * `rkcrc` - Rockchip KRNL ramdisk image support
 
 ## // Instructions ##
 
-1. Place zImage in the root (dt or dtb, and/or dtbo should also go here for devices that require custom ones, each will fallback to the original if not included)
+1. Place Image.gz-dtb in the root (separate dt, dtb or recovery_dtbo, and/or dtbo should also go here for devices that require custom ones, each will fallback to the original if not included)
 
 2. Place any required ramdisk files in /ramdisk and modules in /modules (with the full path like /modules/system/lib/modules)
 
@@ -126,7 +124,7 @@ Optional supported binaries which may be placed in /tools to enable built-in exp
 
 4. Modify the anykernel.sh to add your kernel's name, boot partition location, permissions for included ramdisk files, and use methods for any required ramdisk modifications (optionally, also place banner and/or version files in the root to have these displayed during flash)
 
-5. `zip -r9 UPDATE-AnyKernel2.zip * -x .git README.md *placeholder`
+5. `zip -r9 UPDATE-AnyKernel3.zip * -x .git README.md *placeholder`
 
 If supporting a recovery that forces zip signature verification (like Cyanogen Recovery) then you will need to also sign your zip using the method I describe here:
 
@@ -134,10 +132,10 @@ http://forum.xda-developers.com/android/software-hacking/dev-complete-shell-scri
 
 Not required, but any tweaks you can't hardcode into the source (best practice) should be added with an additional init.tweaks.rc or bootscript.sh to minimize the necessary ramdisk changes.
 
-It is also extremely important to note that for the broadest AK2 compatibility it is always better to modify a ramdisk file rather than replace it.
+It is also extremely important to note that for the broadest AK3 compatibility it is always better to modify a ramdisk file rather than replace it.
 
-___If running into trouble when flashing an AK2 zip, the suffix -debugging may be added to the zip's filename to enable creation of a debug .tgz of /tmp for later examination while booted or on desktop.___
+___If running into trouble when flashing an AK3 zip, the suffix -debugging may be added to the zip's filename to enable creation of a debug .tgz of /tmp for later examination while booted or on desktop.___
 
-For further support and usage examples please see the AnyKernel2 XDA thread: https://forum.xda-developers.com/showthread.php?t=2670512
+For further support and usage examples please see the AnyKernel3 XDA thread: https://forum.xda-developers.com/showthread.php?t=2670512
 
 Have fun!

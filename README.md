@@ -30,11 +30,11 @@ __do.devicecheck=1__ specified requires at least device.name1 to be present. Thi
 
 __do.modules=1__ will push the contents of the module directory to the same location relative to root (/) and apply 644 permissions.
 
-__do.cleanup=0__ will keep the zip from removing it's working directory in /tmp/anykernel - this can be useful if trying to debug in adb shell whether the patches worked correctly.
+__do.cleanup=0__ will keep the zip from removing it's working directory in /tmp/anykernel (by default) - this can be useful if trying to debug in adb shell whether the patches worked correctly.
 
-__do.cleanuponabort=0__ will keep the zip from removing it's working directory in /tmp/anykernel in case of installation abort.
+__do.cleanuponabort=0__ will keep the zip from removing it's working directory in /tmp/anykernel (by default) in case of installation abort.
 
-__supported.versions=__ will match against ro.build.version.release from the current ROM's build.prop. It can be set to a list or range. As a list, e.g. `7.1.2` or `8.1.0, 9` it will look for exact matches, as a range, e.g. `7.1.2 - 9` it will check to make sure the current version falls within those limits. Whitespace optional, and supplied version values should be in the same number format they are in the build.prop value for that Android version.
+__supported.versions=__ will match against ro.build.version.release from the current ROM's build.prop. It can be set to a list or range. As a list of one or more entries, e.g. `7.1.2` or `8.1.0, 9` it will look for exact matches, as a range, e.g. `7.1.2 - 9` it will check to make sure the current version falls within those limits. Whitespace optional, and supplied version values should be in the same number format they are in the build.prop value for that Android version.
 
 `block=auto` instead of a direct block filepath enables detection of the device boot partition for use with broad, device non-specific zips. Also accepts specifically `boot` or `recovery`.
 
@@ -42,9 +42,9 @@ __supported.versions=__ will match against ro.build.version.release from the cur
 
 `ramdisk_compression=auto` allows automatically repacking the ramdisk with the format detected during unpack. Changing `auto` to `gz`, `lzo`, `lzma`, `xz`, `bz2`, `lz4`, or `lz4-l` (for lz4 legacy) instead forces the repack as that format, and using `cpio` or `none` will (attempt to) force the repack as uncompressed.
 
-`customdd="<arguments>"` may be added to allow specifying additional dd parameters for devices that need to hack their kernel directly into a large partition like mmcblk0.
+`customdd="<arguments>"` may be added to allow specifying additional dd parameters for devices that need to hack their kernel directly into a large partition like mmcblk0, or force use of dd for flashing.
 
-`slot_select=<active|inactive>` may be added to allow specifying the target slot. If omitted the default remains `active`.
+`slot_select=active|inactive` may be added to allow specifying the target slot. If omitted the default remains `active`.
 
 ## // Command Methods ##
 ```
@@ -97,7 +97,7 @@ You may also use _ui_print "\<text\>"_ to write messages back to the recovery du
 
 ## // Binary Inclusion ##
 
-The AK3 repo includes current ARM builds of `magiskboot`, `magiskpolicy` and `busybox` by default to keep the basic package small. Builds for other architectures and optional binaries (see below) are available from my latest AIK-mobile and FlashIt packages, respectively, here:
+The AK3 repo includes current ARM builds of `magiskboot`, `magiskpolicy` and `busybox` by default to keep the basic package small. Builds for other architectures and optional binaries (see below) are available from the latest Magisk zip, or my latest AIK-mobile and FlashIt packages, respectively, here:
 
 https://forum.xda-developers.com/showthread.php?t=2073775 (Android Image Kitchen thread)  
 https://forum.xda-developers.com/showthread.php?t=2239421 (Odds and Ends thread)
@@ -122,7 +122,7 @@ Optional supported binaries which may be placed in /tools to enable built-in exp
 
 3. Place any required patch files (generally partial files which go with commands) in /patch
 
-4. Modify the anykernel.sh to add your kernel's name, boot partition location, permissions for included ramdisk files, and use methods for any required ramdisk modifications (optionally, also place banner and/or version files in the root to have these displayed during flash)
+4. Modify the anykernel.sh to add your kernel's name, boot partition location, permissions for added ramdisk files, and use methods for any required ramdisk modifications (optionally, also place banner and/or version files in the root to have these displayed during flash)
 
 5. `zip -r9 UPDATE-AnyKernel3.zip * -x .git README.md *placeholder`
 

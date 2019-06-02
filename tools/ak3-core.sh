@@ -345,6 +345,9 @@ flash_dtbo() {
     if [ -f "$bin/flash_erase" -a -f "$bin/nandwrite" ]; then
       $bin/flash_erase $dtboblock 0 0;
       $bin/nandwrite -p $dtboblock $dtbo;
+    elif [ "$customdd" ]; then
+      dd if=/dev/zero of=$dtboblock 2>/dev/null;
+      dd if=$dtbo of=$dtboblock;
     else
       cat $dtbo /dev/zero > $dtboblock 2>/dev/null;
     fi;

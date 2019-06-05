@@ -627,7 +627,7 @@ setup_ak() {
   case $block in
     boot|recovery)
       case $block in
-        boot) parttype="ramdisk boot BOOT LNX android_boot KERN-A kernel KERNEL";;
+        boot) parttype="ramdisk boot BOOT LNX android_boot bootimg KERN-A kernel KERNEL";;
         recovery) parttype="ramdisk_recovey recovery RECOVERY SOS android_recovery";;
       esac;
       for name in $parttype; do
@@ -649,6 +649,8 @@ setup_ak() {
             target=/dev/block/platform/*/by-name/$part;
           elif [ -e /dev/block/platform/*/*/by-name/$part ]; then
             target=/dev/block/platform/*/*/by-name/$part;
+          elif [ -e /dev/$part ]; then
+            target=/dev/$part;
           fi;
           test -e "$target" && break 2;
         done;

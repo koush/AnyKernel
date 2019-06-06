@@ -584,7 +584,7 @@ reset_ak() {
 
 # setup_ak
 setup_ak() {
-  local blockfiles parttype name part target;
+  local blockfiles parttype name part mtdmount mtdpart mtdname target;
 
   # allow multi-partition ramdisk modifying configurations (using reset_ak)
   if [ "$block" ] && [ ! -d "$ramdisk" -a ! -d "$patch" ]; then
@@ -639,11 +639,11 @@ setup_ak() {
             mtdmount=$(grep -w "$part" /proc/mtd);
             mtdpart=$(echo $mtdmount | cut -d\" -f2);
             if [ "$mtdpart" == "$part" ]; then
-              mtd=$(echo $mtdmount | cut -d: -f1);
+              mtdname=$(echo $mtdmount | cut -d: -f1);
             else
               abort "Unable to determine mtd $block partition. Aborting...";
             fi;
-            target=/dev/mtd/$mtd;
+            target=/dev/mtd/$mtdname;
           elif [ -e /dev/block/by-name/$part ]; then
             target=/dev/block/by-name/$part;
           elif [ -e /dev/block/bootdevice/by-name/$part ]; then

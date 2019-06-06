@@ -133,7 +133,7 @@ unpack_ramdisk() {
     fi;
   fi;
 
-  mv -f $ramdisk $home/rdtmp;
+  test -d $ramdisk && mv -f $ramdisk $home/rdtmp;
   mkdir -p $ramdisk;
   chmod 755 $ramdisk;
 
@@ -142,7 +142,7 @@ unpack_ramdisk() {
   if [ $? != 0 -o ! "$(ls)" ]; then
     abort "Unpacking ramdisk failed. Aborting...";
   fi;
-  if [ "$(ls $home/rdtmp)" ]; then
+  if [ -d "$home/rdtmp" ]; then
     cp -af $home/rdtmp/* .;
   fi;
 }
@@ -563,18 +563,19 @@ patch_ueventd() {
 ### configuration/setup functions:
 # reset_ak [keep]
 reset_ak() {
-  local i;
+  local current i;
 
-  if [ ! "$1" == "keep" ]; then
-    rm -rf $(dirname $home/*-files/current)/ramdisk;
-    for i in $bootimg $patch $ramdisk $split_img $home/rdtmp $home/*-new*; do
-      cp -af $i $(dirname $home/*-files/current);
+  current=$(dirname $home/*-files/current);
+  if [ -d "$current" ]; then
+    rm -rf $current/ramdisk;
+    for i in $bootimg boot-new.img; do
+      test -e $i && cp -af $i $current;
     done;
   fi;
   rm -rf $bootimg $ramdisk $split_img $home/*-new* $home/*-files/current;
 
   if [ "$1" == "keep" ]; then
-    mv -f $home/rdtmp $ramdisk;
+    test -d $home/rdtmp && mv -f $home/rdtmp $ramdisk;
   else
     rm -rf $patch $home/rdtmp;
   fi;
@@ -583,16 +584,18 @@ reset_ak() {
 
 # setup_ak
 setup_ak() {
+  local blockfiles parttype name part target;
+
   # allow multi-partition ramdisk modifying configurations (using reset_ak)
-  if [ ! -d "$ramdisk" -a ! -d "$patch" ]; then
-    if [ -d "$(basename $block)-files" ]; then
-      cp -af $home/$(basename $block)-files/* $home;
+  if [ "$block" ] && [ ! -d "$ramdisk" -a ! -d "$patch" ]; then
+    blockfiles=$home/$(basename $block)-files;
+    if [ "$(ls $blockfiles 2>/dev/null)" ]; then
+      cp -af $blockfiles/* $home;
     else
-      mkdir -p $home/$(basename $block)-files;
+      mkdir -p $blockfiles;
     fi;
-    touch $home/$(basename $block)-files/current;
+    touch $blockfiles/current;
   fi;
-  test ! -d "$ramdisk" && mkdir -p $ramdisk;
 
   # slot detection enabled by is_slot_device=1 or auto (from anykernel.sh)
   case $is_slot_device in
@@ -631,7 +634,7 @@ setup_ak() {
         recovery) parttype="ramdisk_recovey recovery RECOVERY SOS android_recovery";;
       esac;
       for name in $parttype; do
-        for part in $name $name$slot; do
+        for part in $name$slot $name; do
           if [ "$(grep -w "$part" /proc/mtd 2> /dev/null)" ]; then
             mtdmount=$(grep -w "$part" /proc/mtd);
             mtdpart=$(echo $mtdmount | cut -d\" -f2);

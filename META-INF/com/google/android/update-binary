@@ -4,7 +4,11 @@
 
 OUTFD=/proc/self/fd/$2;
 ZIPFILE="$3";
-DIR=$(dirname "$ZIPFILE");
+
+ps | grep zygote | grep -v grep >/dev/null && BOOTMODE=true || BOOTMODE=false;
+$BOOTMODE || ps -A 2>/dev/null | grep zygote | grep -v grep >/dev/null && BOOTMODE=true;
+
+$BOOTMODE && DIR=/sdcard || DIR=$(dirname "$ZIPFILE");
 
 test "$home" || home=/tmp/anykernel;
 parent=$(dirname $home);
@@ -33,7 +37,7 @@ cleanup() {
 debugging() {
   case $(basename "$ZIPFILE" .zip) in
     *-debugging)
-      ui_print " " "Creating debugging archive in zip directory...";
+      ui_print " " "Creating debugging archive in $DIR...";
       $bb tar -czvf "$DIR/anykernel3-$(date +%Y-%m-%d_%H%M%S)-debug.tgz" $parent/*;
     ;;
   esac;

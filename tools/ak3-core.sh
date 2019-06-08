@@ -123,7 +123,11 @@ unpack_ramdisk() {
     mv -f ramdisk.cpio.gz ramdisk.cpio;
   fi;
 
-  comp=$($bin/magiskboot decompress ramdisk.cpio 2>&1 | head -n1 | cut -d[ -f2 | cut -d] -f1 | grep -v 'compressed');
+  if [ -f ramdisk.cpio ]; then
+    comp=$($bin/magiskboot decompress ramdisk.cpio 2>&1 | head -n1 | cut -d[ -f2 | cut -d] -f1 | grep -v 'compressed');
+  else
+    abort "No ramdisk found to unpack. Aborting...";
+  fi;
   if [ "$comp" -a "$comp" != "raw" ]; then
     mv -f ramdisk.cpio ramdisk.cpio.$comp;
     $bin/magiskboot decompress ramdisk.cpio.$comp ramdisk.cpio;
@@ -310,7 +314,7 @@ flash_boot() {
   fi;
 
   if [ ! -f boot-new.img ]; then
-    abort "Repacked image could not be found. Aborting...";
+    abort "No repacked image found to flash. Aborting...";
   elif [ "$(wc -c < boot-new.img)" -gt "$(wc -c < boot.img)" ]; then
     abort "New image larger than boot partition. Aborting...";
   fi;

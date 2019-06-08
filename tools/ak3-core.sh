@@ -232,15 +232,15 @@ flash_boot() {
       $bin/mkmtkhdr --kernel $kernel;
       kernel=$kernel-mtk;
     fi;
-  elif [ "$(ls $split_img/kernel*)" ]; then
+  elif [ "$(ls $split_img/kernel* 2>/dev/null)" ]; then
     kernel=$(ls $split_img/kernel* | grep -v 'kernel_dtb' | tail -n1);
   fi;
-  if [ "$(ls ramdisk-new.cpio*)" ]; then
+  if [ "$(ls ramdisk-new.cpio* 2>/dev/null)" ]; then
     ramdisk=$home/$(ls ramdisk-new.cpio* | tail -n1);
   elif [ -f "$bin/mkmtkhdr" -a -f "$split_img/boot.img-base" ]; then
     ramdisk=$split_img/ramdisk.cpio.gz-mtk;
   else
-    ramdisk=$(ls $split_img/ramdisk.cpio* | tail -n1);
+    ramdisk=$(ls $split_img/ramdisk.cpio* 2>/dev/null | tail -n1);
   fi;
   for fdt in dt recovery_dtbo dtb; do
     for i in $home/$fdt $home/$fdt.img $split_img/$fdt; do
@@ -274,8 +274,8 @@ flash_boot() {
     test "$dt" && dt="--dt $dt";
     $bin/mkbootimg --kernel $kernel --ramdisk $ramdisk --cmdline "$cmdline" --base $home --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff --tags_offset "$tagsoff" $dt --output $home/boot-new.img;
   else
-    cp -f $kernel kernel;
-    cp -f $ramdisk ramdisk.cpio;
+    test "$kernel" && cp -f $kernel kernel;
+    test "$ramdisk" && cp -f $ramdisk ramdisk.cpio;
     case $kernel in
       *-dtb) rm -f kernel_dtb;;
     esac;

@@ -38,7 +38,7 @@ debugging() {
   case $(basename "$ZIPFILE" .zip) in
     *-debugging)
       ui_print " " "Creating debugging archive in $DIR...";
-      $bb tar -czvf "$DIR/anykernel3-$(date +%Y-%m-%d_%H%M%S)-debug.tgz" $parent/*;
+      $bb tar -czf "$DIR/anykernel3-$(date +%Y-%m-%d_%H%M%S)-debug.tgz" $home $parent/recovery.log;
     ;;
   esac;
 }

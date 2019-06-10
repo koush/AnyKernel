@@ -11,7 +11,6 @@ $BOOTMODE || ps -A 2>/dev/null | grep zygote | grep -v grep >/dev/null && BOOTMO
 $BOOTMODE && DIR=/sdcard || DIR=$(dirname "$ZIPFILE");
 
 test "$home" || home=/tmp/anykernel;
-parent=$(dirname $home);
 
 ui_print() {
   until [ ! "$1" ]; do
@@ -31,14 +30,15 @@ int2ver() {
   fi;
 }
 cleanup() {
-  cd $parent;
+  cd $home/..;
   rm -rf $home;
 }
 debugging() {
   case $(basename "$ZIPFILE" .zip) in
     *-debugging)
       ui_print " " "Creating debugging archive in $DIR...";
-      $bb tar -czf "$DIR/anykernel3-$(date +%Y-%m-%d_%H%M%S)-debug.tgz" $home $parent/recovery.log;
+      test -f /tmp/recovery.log && log=/tmp/recovery.log;
+      $bb tar -czf "$DIR/anykernel3-$(date +%Y-%m-%d_%H%M%S)-debug.tgz" $home $log;
     ;;
   esac;
 }

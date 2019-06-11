@@ -69,7 +69,7 @@ split_boot() {
     test $? != 0 && dumpfail=1;
     mv -f boot.img-zImage kernel.gz;
     mv -f boot.img-ramdisk.cpio.gz ramdisk.cpio.gz;
-    mv -f boot.img-cmdline cmdline.txt;
+    mv -f boot.img-cmdline cmdline.txt 2>/dev/null;
     if [ -f boot.img-dt -a ! -f "$bin/elftool" ]; then
       case $(od -ta -An -N4 boot.img-dt | sed -e 's/ del//' -e 's/   //g') in
         QCDT|ELF) mv -f boot.img-dt dt;;
@@ -102,6 +102,10 @@ split_boot() {
     dd bs=4096 skip=8 iflag=skip_bytes conv=notrunc if=$bootimg of=ramdisk.cpio.gz;
   else
     $bin/magiskboot unpack -h $bootimg;
+    case $? in
+      1) dumpfail=1;;
+      2) touch chromeos;;
+    esac;
   fi;
 
   if [ $? != 0 -o "$dumpfail" ]; then
@@ -205,13 +209,13 @@ repack_ramdisk() {
 
 # flash_boot (build, sign and write image only)
 flash_boot() {
-  local varlist kernel ramdisk cmdline part0 part1 pk8 cert avbtype;
+  local varlist kernel ramdisk cmdline part0 part1 signfail pk8 cert avbtype;
 
   cd $split_img;
   if [ -f "$bin/mkimage" ]; then
     varlist="name arch os type comp addr ep";
   elif [ -f "$bin/mkbootimg" -a -f "$bin/unpackelf" -a -f boot.img-base ]; then
-    mv -f cmdline.txt boot.img-cmdline;
+    mv -f cmdline.txt boot.img-cmdline 2>/dev/null;
     varlist="cmdline base pagesize kerneloff ramdiskoff tagsoff";
   fi;
   for i in $varlist; do
@@ -291,11 +295,10 @@ flash_boot() {
 
   cd $home;
   if [ -f "$bin/futility" -a -d "$bin/chromeos" ]; then
-    $bin/futility vbutil_kernel --pack boot-new-signed.img --keyblock $bin/chromeos/kernel.keyblock --signprivate $bin/chromeos/kernel_data_key.vbprivk --version 1 --vmlinuz boot-new.img --bootloader $bin/chromeos/empty --config $bin/chromeos/empty --arch arm --flags 0x1;
-    if [ $? != 0 ]; then
-      abort "Signing image failed. Aborting...";
+    if [ -f "$split_img/chromeos" ]; then
+      $bin/futility vbutil_kernel --pack boot-new-signed.img --keyblock $bin/chromeos/kernel.keyblock --signprivate $bin/chromeos/kernel_data_key.vbprivk --version 1 --vmlinuz boot-new.img --bootloader $bin/chromeos/empty --config $bin/chromeos/empty --arch arm --flags 0x1;
     fi;
-    mv -f boot-new-signed.img boot-new.img;
+    test $? != 0 && signfail=1;
   fi;
   if [ -f "$bin/BootSignature_Android.jar" -a -d "$bin/avb" ]; then
     pk8=$(ls $bin/avb/*.pk8);
@@ -306,12 +309,12 @@ flash_boot() {
     esac;
     if [ "$(/system/bin/dalvikvm -Xbootclasspath:/system/framework/core-oj.jar:/system/framework/core-libart.jar:/system/framework/conscrypt.jar:/system/framework/bouncycastle.jar -Xnodex2oat -Xnoimage-dex2oat -cp $bin/BootSignature_Android.jar com.android.verity.BootSignature -verify boot.img 2>&1 | grep VALID)" ]; then
       /system/bin/dalvikvm -Xbootclasspath:/system/framework/core-oj.jar:/system/framework/core-libart.jar:/system/framework/conscrypt.jar:/system/framework/bouncycastle.jar -Xnodex2oat -Xnoimage-dex2oat -cp $bin/BootSignature_Android.jar com.android.verity.BootSignature /$avbtype boot-new.img $pk8 $cert boot-new-signed.img;
-      if [ $? != 0 ]; then
-        abort "Signing image failed. Aborting...";
-      fi;
     fi;
-    mv -f boot-new-signed.img boot-new.img;
   fi;
+  if [ $? != 0 -o "$signfail"]; then
+    abort "Signing image failed. Aborting...";
+  fi;
+  mv -f boot-new-signed.img boot-new.img 2>/dev/null;
 
   if [ ! -f boot-new.img ]; then
     abort "No repacked image found to flash. Aborting...";
@@ -635,7 +638,7 @@ setup_ak() {
     boot|recovery)
       case $block in
         boot) parttype="ramdisk boot BOOT LNX android_boot bootimg KERN-A kernel KERNEL";;
-        recovery) parttype="ramdisk_recovey recovery RECOVERY SOS android_recovery";;
+        recovery) parttype="ramdisk_recovery recovery RECOVERY SOS android_recovery";;
       esac;
       for name in $parttype; do
         for part in $name$slot $name; do

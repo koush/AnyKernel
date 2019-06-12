@@ -311,7 +311,7 @@ flash_boot() {
       /system/bin/dalvikvm -Xbootclasspath:/system/framework/core-oj.jar:/system/framework/core-libart.jar:/system/framework/conscrypt.jar:/system/framework/bouncycastle.jar -Xnodex2oat -Xnoimage-dex2oat -cp $bin/BootSignature_Android.jar com.android.verity.BootSignature /$avbtype boot-new.img $pk8 $cert boot-new-signed.img;
     fi;
   fi;
-  if [ $? != 0 -o "$signfail"]; then
+  if [ $? != 0 -o "$signfail" ]; then
     abort "Signing image failed. Aborting...";
   fi;
   mv -f boot-new-signed.img boot-new.img 2>/dev/null;

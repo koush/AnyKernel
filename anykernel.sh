@@ -12,7 +12,7 @@ do.cleanuponabort=0
 device.name1=maguro
 device.name2=toro
 device.name3=toroplus
-device.name4=
+device.name4=tuna
 device.name5=
 supported.versions=
 '; } # end properties

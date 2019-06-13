@@ -7,7 +7,7 @@ AnyKernel3 - Flashable Zip Template for Kernel Releases with Ramdisk Modificatio
 
 AnyKernel3 pushes the format even further by allowing kernel developers to modify the underlying ramdisk for kernel feature support easily using a number of included command methods along with properties and variables.
 
-_A working script based on Galaxy Nexus (tuna) is included for reference._
+_A script based on Galaxy Nexus (tuna) is included for reference._
 
 ## // Properties / Variables ##
 ```
@@ -116,11 +116,11 @@ Optional supported binaries which may be placed in /tools to enable built-in exp
 
 ## // Instructions ##
 
-1. Place Image.gz-dtb in the root (separate dt, dtb or recovery_dtbo, and/or dtbo should also go here for devices that require custom ones, each will fallback to the original if not included)
+1. Place final kernel build product, e.g. Image.gz-dtb or zImage to name a couple, in the zip root (separate dt, dtb or recovery_dtbo, and/or dtbo should also go here for devices that require custom ones, each will fallback to the original if not included)
 
 2. Place any required ramdisk files in /ramdisk and modules in /modules (with the full path like /modules/system/lib/modules)
 
-3. Place any required patch files (generally partial files which go with commands) in /patch
+3. Place any required patch files (generally partial files which go with AK3 file editing commands) in /patch
 
 4. Modify the anykernel.sh to add your kernel's name, boot partition location, permissions for added ramdisk files, and use methods for any required ramdisk modifications (optionally, also place banner and/or version files in the root to have these displayed during flash)
 

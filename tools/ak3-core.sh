@@ -128,11 +128,11 @@ unpack_ramdisk() {
   fi;
 
   if [ -f ramdisk.cpio ]; then
-    comp=$($bin/magiskboot decompress ramdisk.cpio 2>&1 | head -n1 | cut -d[ -f2 | cut -d] -f1 | grep -v 'compressed');
+    comp=$($bin/magiskboot decompress ramdisk.cpio 2>&1 | grep -v 'raw' | sed -n 's;.*\[\(.*\)\];\1;p');
   else
     abort "No ramdisk found to unpack. Aborting...";
   fi;
-  if [ "$comp" -a "$comp" != "raw" ]; then
+  if [ "$comp" ]; then
     mv -f ramdisk.cpio ramdisk.cpio.$comp;
     $bin/magiskboot decompress ramdisk.cpio.$comp ramdisk.cpio;
     if [ $? != 0 ]; then

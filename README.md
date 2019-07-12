@@ -114,6 +114,8 @@ Optional supported binaries which may be placed in /tools to enable built-in exp
 * `BootSignature_Android.jar` + `avb` keys directory - Google Android Verified Boot (AVB) signature support
 * `rkcrc` - Rockchip KRNL ramdisk image support
 
+Optionally moving ARM builds to tools/arm and putting x86 builds in tools/x86 will enable architecture detection for use with broad, device non-specific zips.
+
 ## // Instructions ##
 
 1. Place final kernel build product, e.g. Image.gz-dtb or zImage to name a couple, in the zip root (separate dt, dtb or recovery_dtbo, and/or dtbo should also go here for devices that require custom ones, each will fallback to the original if not included)

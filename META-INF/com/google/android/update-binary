@@ -42,7 +42,7 @@ debugging() {
     ;;
   esac;
 }
-is_mounted() { $bb mount | $bb grep " $1 "; }
+is_mounted() { $bb mount | $bb grep -q " $1 "; }
 unmount_all() {
   ($bb umount /system;
   if [ -d /system_root -a ! -f /system/build.prop ]; then
@@ -108,7 +108,7 @@ fi;
 ui_print " " "AnyKernel3 by osm0sis @ xda-developers" " " " ";
 
 unmount_all;
-if [ ! "$(is_mounted /system)" ]; then
+if ! is_mounted /system; then
   $bb mount -o ro -t auto /system;
 fi;
 ($bb mount -o ro -t auto /vendor;
@@ -201,7 +201,7 @@ if [ "$(file_getprop anykernel.sh do.modules)" == 1 ]; then
         *) modcon=system;;
       esac;
     fi;
-    if [ "$(is_mounted $modtarget)" ]; then
+    if is_mounted $modtarget; then
       $bb mount -o rw,remount -t auto $modtarget;
     fi;
     mkdir -p $(dirname $modtarget);
@@ -211,7 +211,7 @@ if [ "$(file_getprop anykernel.sh do.modules)" == 1 ]; then
     if [ "$modcon" ]; then
       chcon "u:object_r:${modcon}_file:s0" $modtarget;
     fi;
-    if [ "$(is_mounted $modtarget)" ]; then
+    if is_mounted $modtarget; then
       $bb mount -o ro,remount -t auto $modtarget;
     fi;
   done;

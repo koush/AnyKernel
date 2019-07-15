@@ -46,6 +46,8 @@ __supported.versions=__ will match against ro.build.version.release from the cur
 
 `slot_select=active|inactive` may be added to allow specifying the target slot. If omitted the default remains `active`.
 
+_Note: Currently pushing modules is to the active slot only._
+
 ## // Command Methods ##
 ```
 dump_boot

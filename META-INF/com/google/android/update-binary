@@ -186,12 +186,12 @@ if [ "$supported_lvl" ]; then
   parsed_lvl=$(echo $android_lvl | $bb grep -oE '[0-9]{4}-[0-9]{2}');
   if echo $supported_lvl | $bb grep -q '^\-'; then
     lo_lvl=0000-00;
-    hi_lvl=$(echo $supported_lvl | awk '{ print $2 }');
+    hi_lvl=$(echo $supported_lvl | $bb awk '{ print $2 }');
   elif echo $supported_lvl | $bb grep -q ' - '; then
-    lo_lvl=$(echo $supported_lvl | awk '{ print $1 }');
-    hi_lvl=$(echo $supported_lvl | awk '{ print $3 }');
+    lo_lvl=$(echo $supported_lvl | $bb awk '{ print $1 }');
+    hi_lvl=$(echo $supported_lvl | $bb awk '{ print $3 }');
   elif echo $supported_lvl | $bb grep -q '\-$'; then
-    lo_lvl=$(echo $supported_lvl | awk '{ print $1 }');
+    lo_lvl=$(echo $supported_lvl | $bb awk '{ print $1 }');
     hi_lvl=9999-99;
   fi;
   if echo -e "$hi_lvl\n$lo_lvl\n$parsed_lvl" | $bb sort -g | $bb grep -n "$parsed_lvl" | $bb grep -q '^2:'; then

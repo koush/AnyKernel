@@ -139,34 +139,34 @@ fi;
 
 if [ "$(file_getprop anykernel.sh do.devicecheck)" == 1 ]; then
   ui_print "Checking device...";
-  device="$(getprop ro.product.device)";
-  product="$(getprop ro.build.product)";
+  device=$(getprop ro.product.device);
+  product=$(getprop ro.build.product);
   for testname in $(file_getprop anykernel.sh 'device.name.*'); do
     if [ "$device" == "$testname" -o "$product" == "$testname" ]; then
-      ui_print "$testname";
+      ui_print "$testname" " ";
       match=1;
       break;
     fi;
   done;
-  ui_print " ";
   if [ ! "$match" ]; then
-    abort "Unsupported device. Aborting...";
+    abort " " "Unsupported device. Aborting...";
   fi;
 fi;
 
-supported_ver="$(file_getprop anykernel.sh supported.versions | $bb tr -d '[:space:]')";
+supported_ver=$(file_getprop anykernel.sh supported.versions | $bb tr -d '[:space:]');
 if [ "$supported_ver" ]; then
   ui_print "Checking Android version...";
-  android_ver="$(file_getprop /system/build.prop ro.build.version.release)";
-  if [ "$(echo $supported_ver | $bb grep -)" ]; then
-    lo_ver=$(echo $supported_ver | $bb cut -d- -f1);
-    hi_ver=$(echo $supported_ver | $bb cut -d- -f2);
-    if [ "$(echo -e "$(int2ver $hi_ver)\n$(int2ver $lo_ver)\n$(int2ver $android_ver)" | $bb sort -g | $bb grep -n "$(int2ver $android_ver)" | $bb grep '^2:')" ]; then
+  android_ver=$(file_getprop /system/build.prop ro.build.version.release);
+  parsed_ver=$(int2ver $android_ver);
+  if echo $supported_ver | $bb grep -q '-'; then
+    lo_ver=$(int2ver "$(echo $supported_ver | $bb cut -d- -f1)");
+    hi_ver=$(int2ver "$(echo $supported_ver | $bb cut -d- -f2)");
+    if echo -e "$hi_ver\n$lo_ver\n$parsed_ver" | $bb sort -g | $bb grep -n "$parsed_ver" | $bb grep -q '^2:'; then
       supported=1;
     fi;
   else
     for ver in $(echo $supported_ver | $bb sed 's;,; ;g'); do
-      if [ "$(int2ver $ver)" == "$(int2ver $android_ver)" ]; then
+      if [ "$(int2ver $ver)" == "$parsed_ver" ]; then
         supported=1;
         break;
       fi;
@@ -175,8 +175,29 @@ if [ "$supported_ver" ]; then
   if [ "$supported" ]; then
     ui_print "$android_ver" " ";
   else
-    ui_print " ";
-    abort "Unsupported Android version. Aborting...";
+    abort " " "Unsupported Android version. Aborting...";
+  fi;
+fi;
+
+supported_lvl=$(file_getprop anykernel.sh supported.patchlevels | $bb grep -oE '[0-9]{4}-[0-9]{2}|-');
+if [ "$supported_lvl" ]; then
+  ui_print "Checking Android security patch level...";
+  android_lvl=$(file_getprop /system/build.prop ro.build.version.security_patch);
+  parsed_lvl=$(echo $android_lvl | $bb grep -oE '[0-9]{4}-[0-9]{2}');
+  if echo $supported_lvl | $bb grep -q '^\-'; then
+    lo_lvl=0000-00;
+    hi_lvl=$(echo $supported_lvl | awk '{ print $2 }');
+  elif echo $supported_lvl | $bb grep -q ' - '; then
+    lo_lvl=$(echo $supported_lvl | awk '{ print $1 }');
+    hi_lvl=$(echo $supported_lvl | awk '{ print $3 }');
+  elif echo $supported_lvl | $bb grep -q '\-$'; then
+    lo_lvl=$(echo $supported_lvl | awk '{ print $1 }');
+    hi_lvl=9999-99;
+  fi;
+  if echo -e "$hi_lvl\n$lo_lvl\n$parsed_lvl" | $bb sort -g | $bb grep -n "$parsed_lvl" | $bb grep -q '^2:'; then
+    ui_print "$android_lvl" " ";
+  else
+    abort " " "Unsupported Android security patch level. Aborting...";
   fi;
 fi;
 

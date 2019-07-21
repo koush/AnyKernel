@@ -53,6 +53,14 @@ _Note: Currently pushing modules is to the active slot only._
 
 ## // Command Methods ##
 ```
+ui_print "<text>" [...]
+abort ["<text>" [...]]
+contains <string> <substring>
+file_getprop <file> <property>
+
+set_perm <owner> <group> <mode> <file> [<file2> ...]
+set_perm_recursive <owner> <group> <dir_mode> <file_mode> <dir> [<dir2> ...]
+
 dump_boot
 split_boot
 unpack_ramdisk

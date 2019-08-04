@@ -53,7 +53,7 @@ unmount_all() {
   $bb umount /data) 2>/dev/null;
 }
 abort() {
-  ui_print "$*";
+  ui_print "$@";
   debugging;
   if [ ! -f anykernel.sh -o "$(file_getprop anykernel.sh do.cleanuponabort 2>/dev/null)" == 1 ]; then
     cleanup;

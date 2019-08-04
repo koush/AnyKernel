@@ -22,7 +22,7 @@ ui_print() {
 
 # abort ["<text>" [...]]
 abort() {
-  ui_print " " "$*";
+  ui_print " " "$@";
   exit 1;
 }
 

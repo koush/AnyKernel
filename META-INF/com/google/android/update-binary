@@ -45,7 +45,7 @@ debugging() {
 is_mounted() { $bb mount | $bb grep -q " $1 "; }
 unmount_all() {
   ($bb umount /system;
-  if [ -e /system_root -a ! -f /system/build.prop ]; then
+  if [ -e /system_root ] && [ ! -f /system/build.prop -o -L /system ]; then
     $bb umount /system_root;
   fi;
   $bb umount /system;

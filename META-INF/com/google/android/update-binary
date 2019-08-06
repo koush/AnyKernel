@@ -45,7 +45,7 @@ debugging() {
 is_mounted() { $bb mount | $bb grep -q " $1 "; }
 unmount_all() {
   ($bb umount /system;
-  if [ -d /system_root -a ! -f /system/build.prop ]; then
+  if [ -e /system_root -a ! -f /system/build.prop ]; then
     $bb umount /system_root;
   fi;
   $bb umount /system;
@@ -115,8 +115,12 @@ fi;
 $bb mount /data) 2>/dev/null;
 if [ -f /system/system/build.prop ]; then
   $bb umount /system;
-  ($bb umount /system;
-  mkdir /system_root) 2>/dev/null;
+  $bb umount /system 2>/dev/null;
+  for mntpt in /system /system_root; do
+    if [ -L $mntpt -o ! -d $mntpt ]; then
+      rm -f $mntpt;
+      mkdir $mntpt;
+    fi;
   $bb mount -o ro -t auto /dev/block/bootdevice/by-name/system /system_root;
   $bb mount -o bind /system_root/system /system;
 fi;

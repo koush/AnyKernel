@@ -64,6 +64,7 @@ set_perm_recursive <owner> <group> <dir_mode> <file_mode> <dir> [<dir2> ...]
 dump_boot
 split_boot
 unpack_ramdisk
+
 backup_file <file>
 restore_file <file>
 replace_string <file> <if search string> <original string> <replacement string> <scope>
@@ -80,10 +81,12 @@ patch_fstab <fstab file> <mount match name> <fs match type> block|mount|fstype|o
 patch_cmdline <cmdline entry name> <replacement string>
 patch_prop <prop file> <prop name> <new prop value>
 patch_ueventd <ueventd file> <device node> <permissions> <chown> <chgrp>
+
 repack_ramdisk
 flash_boot
 flash_dtbo
 write_boot
+
 reset_ak [keep]
 setup_ak
 ```

@@ -121,6 +121,7 @@ if [ -f /system/system/build.prop ]; then
       rm -f $mntpt;
       mkdir $mntpt;
     fi;
+  done;
   $bb mount -o ro -t auto /dev/block/bootdevice/by-name/system /system_root;
   $bb mount -o bind /system_root/system /system;
 fi;

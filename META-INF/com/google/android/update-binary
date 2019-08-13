@@ -127,7 +127,7 @@ if [ -f /system/system/build.prop ]; then
   if [ $? != 0 ]; then
     $bb umount /system;
     $bb umount /system 2>/dev/null;
-    $bb mount -o ro -t auto /dev/block/bootdevice/by-name/system /system_root;
+    $bb mount -o ro -t auto /system_root || $bb mount -o ro -t auto /dev/block/bootdevice/by-name/system /system_root;
   fi;
   $bb mount -o bind /system_root/system /system;
 fi;

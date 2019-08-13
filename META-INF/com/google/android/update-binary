@@ -18,6 +18,11 @@ ui_print() {
     shift;
   done;
 }
+ui_printfile() {
+  while IFS='' read -r line || $bb [[ -n "$line" ]]; do
+    ui_print "$line";
+  done < $1;
+}
 show_progress() { echo "progress $1 $2" > $OUTFD; }
 file_getprop() { $bb grep "^$2=" "$1" | $bb cut -d= -f2-; }
 int2ver() {
@@ -42,8 +47,14 @@ debugging() {
     ;;
   esac;
 }
+setup_mountpoint() {
+  if [ -L $1 -o ! -d $1 ]; then
+    rm -f $1;
+    mkdir $1;
+  fi;
+}
 is_mounted() { $bb mount | $bb grep -q " $1 "; }
-unmount_all() {
+umount_all() {
   ($bb umount /system;
   if [ -e /system_root ] && [ ! -f /system/build.prop -o -L /system ]; then
     $bb umount /system_root;
@@ -58,7 +69,7 @@ abort() {
   if [ ! -f anykernel.sh -o "$(file_getprop anykernel.sh do.cleanuponabort 2>/dev/null)" == 1 ]; then
     cleanup;
   fi;
-  unmount_all;
+  umount_all;
   exit 1;
 }
 
@@ -91,38 +102,33 @@ if [ $? != 0 -o -z "$(ls bin)" ]; then
 fi;
 
 if [ -f banner ]; then
-  while IFS='' read -r line || $bb [[ -n "$line" ]]; do
-    ui_print "$line";
-  done < banner;
+  ui_printfile banner;
   ui_print " " " ";
 fi;
 
 ui_print "$(file_getprop anykernel.sh kernel.string)";
 if [ -f version ]; then
   ui_print " ";
-  while IFS='' read -r line || $bb [[ -n "$line" ]]; do
-    ui_print "$line";
-  done < version;
+  ui_printfile version;
   ui_print " ";
 fi;
 ui_print " " "AnyKernel3 by osm0sis @ xda-developers" " " " ";
 
-unmount_all;
+umount_all;
+setup_mountpoint /system;
 if ! is_mounted /system; then
   $bb mount -o ro -t auto /system;
 fi;
 ($bb mount -o ro -t auto /vendor;
 $bb mount /data) 2>/dev/null;
 if [ -f /system/system/build.prop ]; then
-  $bb umount /system;
-  $bb umount /system 2>/dev/null;
-  for mntpt in /system /system_root; do
-    if [ -L $mntpt -o ! -d $mntpt ]; then
-      rm -f $mntpt;
-      mkdir $mntpt;
-    fi;
-  done;
-  $bb mount -o ro -t auto /dev/block/bootdevice/by-name/system /system_root;
+  setup_mountpoint /system_root;
+  $bb mount --move /system /system_root;
+  if [ $? != 0 ]; then
+    $bb umount /system;
+    $bb umount /system 2>/dev/null;
+    $bb mount -o ro -t auto /dev/block/bootdevice/by-name/system /system_root;
+  fi;
   $bb mount -o bind /system_root/system /system;
 fi;
 savedpath="$LD_LIBRARY_PATH";
@@ -255,6 +261,6 @@ fi;
 test "$savedpath" && export LD_LIBRARY_PATH="$savedpath";
 test "$savedpre" && export LD_PRELOAD="$savedpre";
 
-unmount_all;
+umount_all;
 
 ui_print " " " " "Done!";

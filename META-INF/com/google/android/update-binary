@@ -10,6 +10,7 @@ $BOOTMODE || ps -A 2>/dev/null | grep zygote | grep -v grep >/dev/null && BOOTMO
 
 $BOOTMODE && DIR=/sdcard || DIR=$(dirname "$ZIPFILE");
 
+test "$ANDROID_ROOT" || ANDROID_ROOT=/system;
 test "$home" || home=/tmp/anykernel;
 
 ui_print() {
@@ -48,7 +49,8 @@ debugging() {
   esac;
 }
 setup_mountpoint() {
-  if [ -L $1 -o ! -d $1 ]; then
+  test -L $1 && $bb mv -f $1 ${1}_link;
+  if [ ! -d $1 ]; then
     rm -f $1;
     mkdir $1;
   fi;
@@ -56,12 +58,24 @@ setup_mountpoint() {
 is_mounted() { $bb mount | $bb grep -q " $1 "; }
 umount_all() {
   ($bb umount /system;
-  if [ -e /system_root ] && [ ! -f /system/build.prop -o -L /system ]; then
+  $bb umount -l /system;
+  if [ -e /system_root ]; then
     $bb umount /system_root;
+    $bb umount -l /system_root;
   fi;
-  $bb umount /system;
   umount /vendor;
-  $bb umount /data) 2>/dev/null;
+  umount -l /vendor;
+  if [ "$umount_data" ]; then
+    $bb umount /data;
+    $bb umount -l /data;
+  fi) 2>/dev/null;
+}
+restore_env() {
+  test "$savedpath" && export LD_LIBRARY_PATH="$savedpath";
+  test "$savedpre" && export LD_PRELOAD="$savedpre";
+  umount_all;
+  ($bb mv -f /system_link /system;
+  $bb mv -f /system_root_link /system_root) 2>/dev/null;
 }
 abort() {
   ui_print "$@";
@@ -69,7 +83,7 @@ abort() {
   if [ ! -f anykernel.sh -o "$(file_getprop anykernel.sh do.cleanuponabort 2>/dev/null)" == 1 ]; then
     cleanup;
   fi;
-  umount_all;
+  restore_env;
   exit 1;
 }
 
@@ -115,22 +129,33 @@ fi;
 ui_print " " "AnyKernel3 by osm0sis @ xda-developers" " " " ";
 
 umount_all;
-setup_mountpoint /system;
-if ! is_mounted /system; then
-  $bb mount -o ro -t auto /system;
+setup_mountpoint $ANDROID_ROOT;
+if ! is_mounted $ANDROID_ROOT; then
+  $bb mount -o ro -t auto $ANDROID_ROOT;
 fi;
-($bb mount -o ro -t auto /vendor;
-$bb mount /data) 2>/dev/null;
-if [ -f /system/system/build.prop ]; then
-  setup_mountpoint /system_root;
-  $bb mount --move /system /system_root;
-  if [ $? != 0 ]; then
-    $bb umount /system;
-    $bb umount /system 2>/dev/null;
-    $bb mount -o ro -t auto /system_root 2>/dev/null || $bb mount -o ro -t auto /dev/block/bootdevice/by-name/system /system_root;
-  fi;
+case $ANDROID_ROOT in
+  /system_root) setup_mountpoint /system;;
+  /system)
+    if [ -f /system/system/build.prop ]; then
+      setup_mountpoint /system_root;
+      $bb mount --move /system /system_root;
+      if [ $? != 0 ]; then
+        $bb umount /system;
+        $bb umount -l /system 2>/dev/null;
+        $bb mount -o ro -t auto /dev/block/bootdevice/by-name/system /system_root;
+      fi;
+    fi;
+  ;;
+esac;
+if is_mounted /system_root; then
   $bb mount -o bind /system_root/system /system;
 fi;
+$bb mount -o ro -t auto /vendor 2>/dev/null;
+if ! is_mounted /data; then
+  $bb mount /data;
+  umount_data=1;
+fi;
+
 savedpath="$LD_LIBRARY_PATH";
 savedpre="$LD_PRELOAD";
 unset LD_LIBRARY_PATH;
@@ -258,9 +283,6 @@ if [ "$(file_getprop anykernel.sh do.cleanup)" == 1 ]; then
   cleanup;
 fi;
 
-test "$savedpath" && export LD_LIBRARY_PATH="$savedpath";
-test "$savedpre" && export LD_PRELOAD="$savedpre";
-
-umount_all;
+restore_env;
 
 ui_print " " " " "Done!";

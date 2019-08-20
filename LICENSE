@@ -1,4 +1,4 @@
-## AnyKernel3 (AK3), and AnyKernel2/AnyKernel 2.0 (AK2) Script License:
+## AnyKernel3 (AK3), and AnyKernel2/AnyKernel 2.0 (AK2) Scripts License:
 
     AnyKernel (versions 2.0/2 and later) Android image modifying scripts.
     Copyright (c) 2019 Chris Renshaw (osm0sis @ xda-developers),
@@ -36,7 +36,7 @@
 
 ## Included Binary Licenses:
 
-magiskboot, magiskpolicy: GPLv3+
+magiskboot, magiskpolicy (Magisk): GPLv3+
 
     Magisk, including all git submodules are free software:
     you can redistribute it and/or modify it under the terms of the
@@ -56,10 +56,10 @@ magiskboot, magiskpolicy: GPLv3+
 
 busybox: GPLv2
 
-    BusyBox is distributed under version 2 of the General Public License
-    (included in its entirety, below). Version 2 is the only version of
-    this license which this version of BusyBox (or modified versions
-    derived from this one) may be distributed under.
+    BusyBox is distributed under version 2 of the General Public
+    License. Version 2 is the only version of this license which this
+    version of BusyBox (or modified versions derived from this one) may
+    be distributed under.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -102,8 +102,8 @@ BootSignature*.jar: Apache License 2.0
     https://github.com/osm0sis/mkmtkhdr
     https://android.googlesource.com/platform/system/extras/+/master
 
-mtd-utils (flash_erase, nanddump, nandwrite): GPLv2
-U-Boot (dumpimage, mkimage): GPLv2+
+flash_erase, nanddump, nandwrite (mtd-utils): GPLv2
+dumpimage, mkimage (U-Boot): GPLv2+
 mboot: GPLv2 (Intel mboot.py derived)
 
     Copyright their respective authors, (linked below).
@@ -136,9 +136,9 @@ unpackelf, elftool: BSD 3-Clause License, implied (Sony mkelf.py derived)
          notice, this list of conditions and the following disclaimer in
          the documentation and/or other materials provided with the
          distribution.
-       * Neither the name of copyright holder nor the names of its contributors
-         may be used to endorse or promote products derived from this
-         software without specific prior written permission.
+       * Neither the name of the copyright holder nor the names of its
+         contributors may be used to endorse or promote products derived
+         from this software without specific prior written permission.
 
     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
     "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT

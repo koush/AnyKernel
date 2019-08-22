@@ -144,6 +144,8 @@ Optionally moving ARM builds to tools/arm and putting x86 builds in tools/x86 wi
 
 5. `zip -r9 UPDATE-AnyKernel3.zip * -x .git README.md *placeholder`
 
+_The LICENSE file must remain in the final zip to comply with licenses for binary redistribution and the license of the AK3 scripts._
+
 If supporting a recovery that forces zip signature verification (like Cyanogen Recovery) then you will need to also sign your zip using the method I describe here:
 
 http://forum.xda-developers.com/android/software-hacking/dev-complete-shell-script-flashable-zip-t2934449

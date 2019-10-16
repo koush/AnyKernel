@@ -168,7 +168,7 @@ if [ ! "$(getprop 2>/dev/null)" ]; then
     local propdir propfile propval;
     for propdir in / /system_root /system /vendor /odm /product; do
       for propfile in default.prop build.prop; do
-        test "$propval" || propval="$(file_getprop $propdir/$propfile $1 2>/dev/null)";
+        test "$propval" && break 2 || propval="$(file_getprop $propdir/$propfile $1 2>/dev/null)";
       done;
     done;
     test "$propval" && echo "$propval" || echo "";

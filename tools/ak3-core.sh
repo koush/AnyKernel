@@ -160,7 +160,7 @@ unpack_ramdisk() {
     mv -f ramdisk.cpio ramdisk.cpio.$comp;
     $bin/magiskboot decompress ramdisk.cpio.$comp ramdisk.cpio;
     if [ $? != 0 ]; then
-      echo "Attempting with busybox $comp..." >&2;
+      echo "Attempting ramdisk unpack with busybox $comp..." >&2;
       $comp -dc ramdisk.cpio.$comp > ramdisk.cpio;
     fi;
   fi;
@@ -213,7 +213,7 @@ repack_ramdisk() {
   if [ "$comp" ]; then
     $bin/magiskboot compress=$comp ramdisk-new.cpio;
     if [ $? != 0 ]; then
-      echo "Attempting with busybox $comp..." >&2;
+      echo "Attempting ramdisk repack with busybox $comp..." >&2;
       $comp -9c ramdisk-new.cpio > ramdisk-new.cpio.$comp;
       test $? != 0 && packfail=1;
       rm -f ramdisk-new.cpio;
@@ -233,7 +233,7 @@ repack_ramdisk() {
 
 # flash_boot (build, sign and write image only)
 flash_boot() {
-  local varlist kernel ramdisk cmdline part0 part1 nocompflag signfail pk8 cert avbtype;
+  local varlist i kernel ramdisk fdt cmdline comp part0 part1 patched nocompflag signfail pk8 cert avbtype;
 
   cd $split_img;
   if [ -f "$bin/mkimage" ]; then
@@ -302,15 +302,42 @@ flash_boot() {
     test "$dt" && dt="--dt $dt";
     $bin/mkbootimg --kernel $kernel --ramdisk $ramdisk --cmdline "$cmdline" --base $home --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff --tags_offset "$tagsoff" $dt --output $home/boot-new.img;
   else
-    test "$kernel" && cp -f $kernel kernel;
+    $bin/magiskboot cpio ramdisk.cpio test || patched=1;
+    if [ "$kernel" ]; then
+      cp -f $kernel kernel;
+      if [ "$patched" ]; then
+        ui_print " " "Magisk detected! Patching kernel so reflashing Magisk is not necessary...";
+        comp=$($bin/magiskboot decompress kernel 2>&1 | grep -v 'raw' | sed -n 's;.*\[\(.*\)\];\1;p');
+        ($bin/magiskboot split $kernel || $bin/magiskboot decompress $kernel kernel) 2>/dev/null;
+        if [ $? != 0 ]; then
+          echo "Attempting kernel unpack with busybox $comp..." >&2;
+          $comp -dc $kernel > kernel;
+        fi;
+        $bin/magiskboot hexpatch kernel 736B69705F696E697472616D667300 77616E745F696E697472616D667300;
+        if [ "$comp" ]; then
+          $bin/magiskboot compress=$comp kernel kernel.$comp;
+          if [ $? != 0 ]; then
+            echo "Attempting kernel repack with busybox $comp..." >&2;
+            $comp -9c kernel > kernel.$comp;
+          fi;
+          mv -f kernel.$comp kernel;
+        fi;
+      else
+        case $kernel in
+          *-dtb) rm -f kernel_dtb;;
+        esac;
+      fi;
+    fi;
     test "$ramdisk" && cp -f $ramdisk ramdisk.cpio;
-    case $kernel in
-      *-dtb) rm -f kernel_dtb;;
-    esac;
     test "$dt" -a -f extra && cp -f $dt extra;
     for i in dtb recovery_dtbo; do
       test "$(eval echo \$$i)" -a -f $i && cp -f $(eval echo \$$i) $i;
     done;
+    if [ "$patched" ]; then
+      for fdt in dtb extra kernel_dtb recovery_dtbo; do
+        test -f $fdt && $bin/magiskboot dtb $fdt patch;
+      done;
+    fi;
     case $ramdisk_compression in
       none|cpio) nocompflag="-n";;
     esac;

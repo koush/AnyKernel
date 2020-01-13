@@ -210,6 +210,9 @@ repack_ramdisk() {
   test $? != 0 && packfail=1;
 
   cd $home;
+  $bin/magiskboot cpio ramdisk-new.cpio test;
+  magisk_patched=$?;
+  $bin/magiskboot cpio ramdisk-new.cpio "extract .backup/.magisk $split_img/.magisk";
   if [ "$comp" ]; then
     $bin/magiskboot compress=$comp ramdisk-new.cpio;
     if [ $? != 0 ]; then
@@ -233,7 +236,7 @@ repack_ramdisk() {
 
 # flash_boot (build, sign and write image only)
 flash_boot() {
-  local varlist i kernel ramdisk fdt cmdline comp part0 part1 patched nocompflag signfail pk8 cert avbtype;
+  local varlist i kernel ramdisk fdt cmdline comp part0 part1 nocompflag signfail pk8 cert avbtype;
 
   cd $split_img;
   if [ -f "$bin/mkimage" ]; then
@@ -302,10 +305,14 @@ flash_boot() {
     test "$dt" && dt="--dt $dt";
     $bin/mkbootimg --kernel $kernel --ramdisk $ramdisk --cmdline "$cmdline" --base $home --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff --tags_offset "$tagsoff" $dt --output $home/boot-new.img;
   else
-    $bin/magiskboot cpio ramdisk.cpio test || patched=1;
+    if [ ! "$magisk_patched" ]; then
+      $bin/magiskboot cpio ramdisk.cpio test;
+      magisk_patched=$?;
+      $bin/magiskboot cpio ramdisk.cpio "extract .backup/.magisk .magisk";
+    fi;
     if [ "$kernel" ]; then
       cp -f $kernel kernel;
-      if [ "$patched" ]; then
+      if [ $((magisk_patched & 3)) -eq 1 ]; then
         ui_print " " "Magisk detected! Patching kernel so reflashing Magisk is not necessary...";
         comp=$($bin/magiskboot decompress kernel 2>&1 | grep -v 'raw' | sed -n 's;.*\[\(.*\)\];\1;p');
         ($bin/magiskboot split $kernel || $bin/magiskboot decompress $kernel kernel) 2>/dev/null;
@@ -333,7 +340,9 @@ flash_boot() {
     for i in dtb recovery_dtbo; do
       test "$(eval echo \$$i)" -a -f $i && cp -f $(eval echo \$$i) $i;
     done;
-    if [ "$patched" ]; then
+    if [ $((magisk_patched & 3)) -eq 1 ]; then
+      export $(cat .magisk);
+      test $((magisk_patched & 8)) -ne 0 && export TWOSTAGEINIT=true;
       for fdt in dtb extra kernel_dtb recovery_dtbo; do
         test -f $fdt && $bin/magiskboot dtb $fdt patch;
       done;

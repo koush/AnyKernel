@@ -309,7 +309,7 @@ flash_boot() {
         ui_print " " "Magisk detected! Patching kernel so reflashing Magisk is not necessary...";
         comp=$($bin/magiskboot decompress kernel 2>&1 | grep -v 'raw' | sed -n 's;.*\[\(.*\)\];\1;p');
         ($bin/magiskboot split $kernel || $bin/magiskboot decompress $kernel kernel) 2>/dev/null;
-        if [ $? != 0 ]; then
+        if [ $? != 0 -a "$comp" ]; then
           echo "Attempting kernel unpack with busybox $comp..." >&2;
           $comp -dc $kernel > kernel;
         fi;

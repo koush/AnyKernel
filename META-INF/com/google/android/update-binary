@@ -61,10 +61,10 @@ umount_all() {
     umount_apex;
     $bb umount /system;
     $bb umount -l /system;
-  fi;
-  if [ -e /system_root ]; then
-    $bb umount /system_root;
-    $bb umount -l /system_root;
+    if [ -e /system_root ]; then
+      $bb umount /system_root;
+      $bb umount -l /system_root;
+    fi;
   fi;
   umount /vendor;
   umount -l /vendor;

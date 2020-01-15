@@ -650,6 +650,7 @@ reset_ak() {
   else
     rm -rf $patch $home/rdtmp;
   fi;
+  unset magisk_patched KEEPFORCEENCRYPT KEEPVERITY SHA1 TWOSTAGEINIT;
   setup_ak;
 }
 

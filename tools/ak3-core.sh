@@ -360,6 +360,7 @@ flash_boot() {
   cd $home;
   if [ -f "$bin/futility" -a -d "$bin/chromeos" ]; then
     if [ -f "$split_img/chromeos" ]; then
+      echo "Signing with CHROMEOS..." >&2;
       $bin/futility vbutil_kernel --pack boot-new-signed.img --keyblock $bin/chromeos/kernel.keyblock --signprivate $bin/chromeos/kernel_data_key.vbprivk --version 1 --vmlinuz boot-new.img --bootloader $bin/chromeos/empty --config $bin/chromeos/empty --arch arm --flags 0x1;
     fi;
     test $? != 0 && signfail=1;
@@ -372,6 +373,7 @@ flash_boot() {
       *) avbtype=boot;;
     esac;
     if [ "$(/system/bin/dalvikvm -Xnoimage-dex2oat -cp $bin/BootSignature_Android.jar com.android.verity.BootSignature -verify boot.img 2>&1 | grep VALID)" ]; then
+      echo "Signing with AVBv1..." >&2;
       /system/bin/dalvikvm -Xnoimage-dex2oat -cp $bin/BootSignature_Android.jar com.android.verity.BootSignature /$avbtype boot-new.img $pk8 $cert boot-new-signed.img;
     fi;
   fi;

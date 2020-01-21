@@ -123,12 +123,16 @@ umount_apex() {
   unset ANDROID_RUNTIME_ROOT ANDROID_TZDATA_ROOT BOOTCLASSPATH;
 }
 restore_env() {
+  local dir;
   test "$savedpath" && export LD_LIBRARY_PATH="$savedpath";
   test "$savedpre" && export LD_PRELOAD="$savedpre";
   umount_all;
-  ($bb mv -f /apex_link /apex;
-  $bb mv -f /system_link /system;
-  $bb mv -f /system_root_link /system_root;
+  (for dir in /apex /system /system_root; do
+    if [ -f "${dir}_link" ]; then
+      rmdir $dir;
+      $bb mv -f ${dir}_link $dir;
+    fi;
+  done;
   $bb umount -l /dev/random) 2>/dev/null;
 }
 abort() {

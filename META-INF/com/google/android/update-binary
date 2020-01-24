@@ -86,12 +86,15 @@ umount_apex() {
 mount_all() {
   setup_mountpoint $ANDROID_ROOT;
   if ! is_mounted $ANDROID_ROOT; then
-    $BB mount -o ro -t auto $ANDROID_ROOT;
+    $BB mount -o ro -t auto $ANDROID_ROOT 2>/dev/null;
   fi;
   case $ANDROID_ROOT in
     /system_root) setup_mountpoint /system;;
     /system)
-      if [ -f /system/system/build.prop ]; then
+      if ! is_mounted /system && ! is_mounted /system_root; then
+        setup_mountpoint /system_root;
+        $BB mount -o ro -t auto /system_root;
+      elif [ -f /system/system/build.prop ]; then
         setup_mountpoint /system_root;
         $BB mount --move /system /system_root;
         if [ $? != 0 ]; then

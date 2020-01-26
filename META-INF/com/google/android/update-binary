@@ -132,15 +132,6 @@ umount_all() {
     $BB umount -l /data;
   fi) 2>/dev/null;
 }
-debugging() {
-  case $(basename "$ZIPFILE" .zip) in
-    *-debugging)
-      ui_print " " "Creating debugging archive in $DIR...";
-      test -f /tmp/recovery.log && local log=/tmp/recovery.log;
-      $BB tar -czf "$DIR/anykernel3-$(date +%Y-%m-%d_%H%M%S)-debug.tgz" $AKHOME $log;
-    ;;
-  esac;
-}
 setup_env() {
   $BOOTMODE || $BB mount -o bind /dev/urandom /dev/random;
   umount_all;
@@ -178,6 +169,15 @@ restore_env() {
     fi;
   done;
   $BB umount -l /dev/random) 2>/dev/null;
+}
+debugging() {
+  case $(basename "$ZIPFILE" .zip) in
+    *-debugging)
+      ui_print " " "Creating debugging archive in $DIR...";
+      test -f /tmp/recovery.log && local log=/tmp/recovery.log;
+      $BB tar -czf "$DIR/anykernel3-$(date +%Y-%m-%d_%H%M%S)-debug.tgz" $AKHOME $log;
+    ;;
+  esac;
 }
 cleanup() {
   cd $(dirname $AKHOME);

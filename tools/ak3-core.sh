@@ -685,6 +685,9 @@ setup_ak() {
         test "$slot" && slot=_$slot;
       fi;
       if [ "$slot" ]; then
+        if [ -d /postinstall/tmp -a ! "$slot_select" ]; then
+          slot_select=inactive;
+        fi;
         case $slot_select in
           inactive)
             case $slot in

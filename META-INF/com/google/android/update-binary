@@ -10,8 +10,9 @@ $BOOTMODE || ps -A 2>/dev/null | grep zygote | grep -v grep >/dev/null && BOOTMO
 
 $BOOTMODE && DIR=/sdcard || DIR=$(dirname "$ZIPFILE");
 
+test -d /postinstall/tmp && POSTINSTALL=/postinstall;
+test "$AKHOME" || AKHOME=$POSTINSTALL/tmp/anykernel;
 test "$ANDROID_ROOT" || ANDROID_ROOT=/system;
-test "$AKHOME" || AKHOME=/tmp/anykernel;
 
 ui_print() {
   until [ ! "$1" ]; do
@@ -318,7 +319,7 @@ do_modules() {
     $BB mount -o rw,remount -t auto /system;
     $BB mount -o rw,remount -t auto /vendor 2>/dev/null;
     for module in $(find . -name '*.ko'); do
-      modtarget=$(echo $module | $BB cut -c2-);
+      modtarget=$POSTINSTALL$(echo $module | $BB cut -c2-);
       if [ ! -e $modtarget ]; then
         case $module in
           */vendor/*) modcon=vendor;;

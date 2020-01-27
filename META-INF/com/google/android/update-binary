@@ -97,11 +97,11 @@ mount_all() {
       elif [ -f /system/system/build.prop ]; then
         setup_mountpoint /system_root;
         $BB mount --move /system /system_root;
-        if [ $? != 0 ]; then
-          $BB umount /system;
-          $BB umount -l /system 2>/dev/null;
-          $BB mount -o ro -t auto /dev/block/bootdevice/by-name/system /system_root;
-        fi;
+      fi;
+      if [ $? != 0 ]; then
+        $BB umount /system;
+        $BB umount -l /system 2>/dev/null;
+        $BB mount -o ro -t auto /dev/block/bootdevice/by-name/system$(getprop ro.boot.slot_suffix 2>/dev/null) /system_root;
       fi;
     ;;
   esac;
@@ -163,7 +163,7 @@ restore_env() {
   test "$OLDLDPRE" && export LD_PRELOAD="$OLDLDPRE";
   umount_all;
   (for dir in /apex /system /system_root; do
-    if [ -e "${dir}_link" ]; then
+    if [ -L "${dir}_link" ]; then
       rmdir $dir;
       $BB mv -f ${dir}_link $dir;
     fi;

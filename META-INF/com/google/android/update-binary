@@ -39,12 +39,12 @@ mount_apex() {
   test -d /system/apex || return 1;
   local apex dest loop minorx num;
   setup_mountpoint /apex;
-  test -e /dev/block/loop1 && minorx=$(ls -l /dev/block/loop1 | $BB awk '{ print $6 }') || minorx=1;
+  test -e /dev/block/loop1 && minorx=$($BB ls -l /dev/block/loop1 | $BB awk '{ print $6 }') || minorx=1;
   num=0;
   for apex in /system/apex/*; do
-    dest=/apex/$(basename $apex .apex);
+    dest=/apex/$($BB basename $apex .apex);
     test "$dest" == /apex/com.android.runtime.release && dest=/apex/com.android.runtime;
-    mkdir -p $dest;
+    $BB mkdir -p $dest;
     case $apex in
       *.apex)
         $BB unzip -qo $apex apex_payload.img -d /apex;
@@ -81,10 +81,15 @@ umount_apex() {
     ($BB umount -l $dest;
     $BB losetup -d $loop) 2>/dev/null;
   done;
-  rm -rf /apex;
+  $BB rm -rf /apex 2>/dev/null;
   unset ANDROID_RUNTIME_ROOT ANDROID_TZDATA_ROOT BOOTCLASSPATH;
 }
 mount_all() {
+  if ! is_mounted /data; then
+    $BB mount /data;
+    UMOUNT_DATA=1;
+  fi;
+  $BB mount -o ro -t auto /vendor 2>/dev/null;
   setup_mountpoint $ANDROID_ROOT;
   if ! is_mounted $ANDROID_ROOT; then
     $BB mount -o ro -t auto $ANDROID_ROOT 2>/dev/null;
@@ -102,19 +107,15 @@ mount_all() {
       if [ $? != 0 ]; then
         $BB umount /system;
         $BB umount -l /system 2>/dev/null;
-        $BB mount -o ro -t auto /dev/block/bootdevice/by-name/system$(getprop ro.boot.slot_suffix 2>/dev/null) /system_root;
+        test -e /dev/block/bootdevice/by-name/system || local slot=$(getprop ro.boot.slot_suffix 2>/dev/null);
+        $BB mount -o ro -t auto /dev/block/bootdevice/by-name/system$slot /system_root;
       fi;
     ;;
   esac;
   if is_mounted /system_root; then
     $BB mount -o bind /system_root/system /system;
   fi;
-  $BB mount -o ro -t auto /vendor 2>/dev/null;
   $BOOTMODE || mount_apex;
-  if ! is_mounted /data; then
-    $BB mount /data;
-    UMOUNT_DATA=1;
-  fi;
 }
 umount_all() {
   (if ! $BOOTMODE; then
@@ -137,10 +138,9 @@ setup_env() {
   $BOOTMODE || $BB mount -o bind /dev/urandom /dev/random;
   umount_all;
   mount_all;
-  OLDLDPATH="$LD_LIBRARY_PATH";
-  OLDLDPRE="$LD_PRELOAD";
-  unset LD_LIBRARY_PATH;
-  unset LD_PRELOAD;
+  OLD_LD_PATH=$LD_LIBRARY_PATH;
+  OLD_LD_PRE=$LD_PRELOAD;
+  unset LD_LIBRARY_PATH LD_PRELOAD;
   if [ ! "$(getprop 2>/dev/null)" ]; then
     getprop() {
       local propdir propfile propval;
@@ -160,8 +160,8 @@ setup_env() {
 restore_env() {
   local dir;
   unset -f getprop;
-  test "$OLDLDPATH" && export LD_LIBRARY_PATH="$OLDLDPATH";
-  test "$OLDLDPRE" && export LD_PRELOAD="$OLDLDPRE";
+  test "$OLD_LD_PATH" && export LD_LIBRARY_PATH=$OLD_LD_PATH;
+  test "$OLD_LD_PRE" && export LD_PRELOAD=$OLD_LD_PRE;
   umount_all;
   (for dir in /apex /system /system_root; do
     if [ -L "${dir}_link" ]; then

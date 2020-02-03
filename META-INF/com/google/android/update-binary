@@ -145,7 +145,8 @@ setup_env() {
   mount_all;
   OLD_LD_PATH=$LD_LIBRARY_PATH;
   OLD_LD_PRE=$LD_PRELOAD;
-  unset LD_LIBRARY_PATH LD_PRELOAD;
+  OLD_LD_CFG=$LD_CONFIG_FILE;
+  unset LD_LIBRARY_PATH LD_PRELOAD LD_CONFIG_FILE;
   if [ ! "$(getprop 2>/dev/null)" ]; then
     getprop() {
       local propdir propfile propval;
@@ -167,6 +168,7 @@ restore_env() {
   unset -f getprop;
   test "$OLD_LD_PATH" && export LD_LIBRARY_PATH=$OLD_LD_PATH;
   test "$OLD_LD_PRE" && export LD_PRELOAD=$OLD_LD_PRE;
+  test "$OLD_LD_CFG" && export LD_CONFIG_FILE=$OLD_LD_CFG;
   umount_all;
   (for dir in /apex /system /system_root; do
     if [ -L "${dir}_link" ]; then

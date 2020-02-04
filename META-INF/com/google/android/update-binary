@@ -32,7 +32,7 @@ setup_mountpoint() {
   test -L $1 && $BB mv -f $1 ${1}_link;
   if [ ! -d $1 ]; then
     rm -f $1;
-    mkdir $1;
+    mkdir -p $1;
   fi;
 }
 is_mounted() { $BB mount | $BB grep -q " $1 "; }
@@ -125,11 +125,13 @@ mount_all() {
 umount_all() {
   (if ! $BOOTMODE; then
     umount_apex;
-    $BB umount /system;
-    $BB umount -l /system;
-    if [ -e /system_root ]; then
-      $BB umount /system_root;
-      $BB umount -l /system_root;
+    if [ ! -d /postinstall/tmp ]; then
+      $BB umount /system;
+      $BB umount -l /system;
+      if [ -e /system_root ]; then
+        $BB umount /system_root;
+        $BB umount -l /system_root;
+      fi;
     fi;
   fi;
   umount /vendor;

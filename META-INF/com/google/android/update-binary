@@ -292,11 +292,11 @@ description=$KERNEL_STRING
 EOF
 }
 dump_moduleremover() {
-cat <<EOF > $1;
+cat <<'EOF' > $1;
 #!/system/bin/sh
-MODDIR=\${0%/*};
-if [ "\$(cat /proc/version)" != "\$(cat \$MODDIR/version)" ]; then
-  rm -rf \$MODDIR;
+MODDIR=${0%/*};
+if [ "$(cat /proc/version)" != "$(cat $MODDIR/version)" ]; then
+  rm -rf $MODDIR;
 fi;
 EOF
 }

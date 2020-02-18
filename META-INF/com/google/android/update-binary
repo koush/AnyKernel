@@ -325,8 +325,10 @@ do_modules() {
   else
     cd $AKHOME/modules;
     ui_print " " "Pushing modules...";
-    $BB mount -o rw,remount -t auto /system;
-    $BB mount -o rw,remount -t auto /vendor 2>/dev/null;
+    if [ ! -d /postinstall/tmp ]; then
+      $BB mount -o rw,remount -t auto /system;
+      $BB mount -o rw,remount -t auto /vendor 2>/dev/null;
+    fi;
     for module in $(find . -name '*.ko'); do
       modtarget=$POSTINSTALL$(echo $module | $BB cut -c2-);
       if [ ! -e $modtarget ]; then
@@ -349,8 +351,10 @@ do_modules() {
         $BB mount -o ro,remount -t auto $modtarget;
       fi;
     done;
-    $BB mount -o ro,remount -t auto /system;
-    $BB mount -o ro,remount -t auto /vendor 2>/dev/null;
+    if [ ! -d /postinstall/tmp ]; then
+      $BB mount -o ro,remount -t auto /system;
+      $BB mount -o ro,remount -t auto /vendor 2>/dev/null;
+    fi;
   fi;
   cd $AKHOME;
 }

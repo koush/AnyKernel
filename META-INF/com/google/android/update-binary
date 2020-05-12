@@ -142,6 +142,11 @@ umount_all() {
 setup_env() {
   $BOOTMODE && return 1;
   $BB mount -o bind /dev/urandom /dev/random;
+  if [ -L /etc ]; then
+    setup_mountpoint /etc;
+    $BB cp -af /etc_link/* /etc;
+    $BB sed -i 's; / ; /system_root ;' /etc/fstab;
+  fi;
   umount_all;
   mount_all;
   OLD_LD_PATH=$LD_LIBRARY_PATH;
@@ -172,7 +177,8 @@ restore_env() {
   test "$OLD_LD_PRE" && export LD_PRELOAD=$OLD_LD_PRE;
   test "$OLD_LD_CFG" && export LD_CONFIG_FILE=$OLD_LD_CFG;
   umount_all;
-  (for dir in /apex /system /system_root; do
+  test -L /etc_link && $BB rm -rf /etc/*;
+  (for dir in /apex /system /system_root /etc; do
     if [ -L "${dir}_link" ]; then
       rmdir $dir;
       $BB mv -f ${dir}_link $dir;

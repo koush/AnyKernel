@@ -80,7 +80,7 @@ busybox: GPLv2
 
 mkbootfs, mkbootimg: Apache License 2.0
 mkmtkhdr: Apache License 2.0, implied (AOSP mkbootimg derived)
-BootSignature*.jar: Apache License 2.0
+boot_signer*.jar: Apache License 2.0
 
     Copyright (c) 2008 The Android Open Source Project
 

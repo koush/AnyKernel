@@ -5,10 +5,12 @@
 OUTFD=/proc/self/fd/$2;
 ZIPFILE="$3";
 
-ps | grep zygote | grep -v grep >/dev/null && BOOTMODE=true || BOOTMODE=false;
+BOOTMODE=false;
+ps | grep zygote | grep -v grep >/dev/null && BOOTMODE=true;
 $BOOTMODE || ps -A 2>/dev/null | grep zygote | grep -v grep >/dev/null && BOOTMODE=true;
 
-$BOOTMODE && DIR=/sdcard || DIR=$(dirname "$ZIPFILE");
+DIR=/sdcard;
+$BOOTMODE || DIR=$(dirname "$ZIPFILE");
 
 test -d /postinstall/tmp && POSTINSTALL=/postinstall;
 test "$AKHOME" || AKHOME=$POSTINSTALL/tmp/anykernel;
@@ -40,7 +42,8 @@ mount_apex() {
   test -d /system/apex || return 1;
   local apex dest loop minorx num;
   setup_mountpoint /apex;
-  test -e /dev/block/loop1 && minorx=$($BB ls -l /dev/block/loop1 | $BB awk '{ print $6 }') || minorx=1;
+  minorx=1;
+  test -e /dev/block/loop1 && minorx=$($BB ls -l /dev/block/loop1 | $BB awk '{ print $6 }');
   num=0;
   for apex in /system/apex/*; do
     dest=/apex/$($BB basename $apex .apex);
@@ -158,10 +161,18 @@ setup_env() {
       local propdir propfile propval;
       for propdir in / /system_root /system /vendor /odm /product; do
         for propfile in default.prop build.prop; do
-          test "$propval" && break 2 || propval="$(file_getprop $propdir/$propfile $1 2>/dev/null)";
+          if [ "$propval" ]; then
+            break 2;
+          else
+            propval="$(file_getprop $propdir/$propfile $1 2>/dev/null)";
+          fi;
         done;
       done;
-      test "$propval" && echo "$propval" || echo "";
+      if [ "$propval" ]; then
+        echo "$propval";
+      else
+        echo "";
+      fi;
     }
   elif [ ! "$(getprop ro.build.type 2>/dev/null)" ]; then
     getprop() {

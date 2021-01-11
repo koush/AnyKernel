@@ -39,13 +39,13 @@ setup_mountpoint() {
 }
 is_mounted() { $BB mount | $BB grep -q " $1 "; }
 mount_apex() {
-  test -d /system/apex || return 1;
+  test -d /system_root/system/apex || return 1;
   local apex dest loop minorx num;
   setup_mountpoint /apex;
   minorx=1;
   test -e /dev/block/loop1 && minorx=$($BB ls -l /dev/block/loop1 | $BB awk '{ print $6 }');
   num=0;
-  for apex in /system/apex/*; do
+  for apex in /system_root/system/apex/*; do
     dest=/apex/$($BB basename $apex .apex);
     test "$dest" == /apex/com.android.runtime.release && dest=/apex/com.android.runtime;
     $BB mkdir -p $dest;
@@ -117,19 +117,19 @@ mount_all() {
     ;;
   esac;
   if is_mounted /system_root; then
+    mount_apex;
     if [ -f /system_root/build.prop ]; then
       $BB mount -o bind /system_root /system;
     else
       $BB mount -o bind /system_root/system /system;
     fi;
   fi;
-  mount_apex;
 }
 umount_all() {
-  (umount_apex;
-  if [ ! -d /postinstall/tmp ]; then
+  (if [ ! -d /postinstall/tmp ]; then
     $BB umount /system;
     $BB umount -l /system;
+    umount_apex;
     if [ -e /system_root ]; then
       $BB umount /system_root;
       $BB umount -l /system_root;

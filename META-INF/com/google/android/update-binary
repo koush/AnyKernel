@@ -109,10 +109,16 @@ mount_all() {
         $BB mount --move /system /system_root;
       fi;
       if [ $? != 0 ]; then
-        $BB umount /system;
-        $BB umount -l /system 2>/dev/null;
-        test -e /dev/block/bootdevice/by-name/system || local slot=$(getprop ro.boot.slot_suffix 2>/dev/null);
-        $BB mount -o ro -t auto /dev/block/bootdevice/by-name/system$slot /system_root;
+        ($BB umount /system;
+        $BB umount -l /system) 2>/dev/null;
+        if [ "$(getprop ro.boot.dynamic_partitions 2>/dev/null)" ]; then
+          test -e /dev/block/mapper/system || local slot=$(getprop ro.boot.slot_suffix 2>/dev/null);
+          $BB mount -o ro -t auto /dev/block/mapper/vendor$slot /vendor;
+          $BB mount -o ro -t auto /dev/block/mapper/system$slot /system_root;
+        else
+          test -e /dev/block/bootdevice/by-name/system || local slot=$(getprop ro.boot.slot_suffix 2>/dev/null);
+          $BB mount -o ro -t auto /dev/block/bootdevice/by-name/system$slot /system_root;
+        fi;
       fi;
     ;;
   esac;
@@ -134,9 +140,13 @@ umount_all() {
       $BB umount /system_root;
       $BB umount -l /system_root;
     fi;
+    $BB umount /mnt/system;
+    $BB umount -l /mnt/system;
   fi;
   umount /vendor;
   umount -l /vendor;
+  $BB umount /mnt/vendor;
+  $BB umount -l /mnt/vendor;
   if [ "$UMOUNT_DATA" ]; then
     $BB umount /data;
     $BB umount -l /data;

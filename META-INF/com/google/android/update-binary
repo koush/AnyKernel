@@ -30,6 +30,24 @@ ui_printfile() {
 }
 show_progress() { echo "progress $1 $2" >> $OUTFD; }
 file_getprop() { $BB grep "^$2=" "$1" | $BB cut -d= -f2-; }
+target_slot() {
+  local slot=$(getprop ro.boot.slot_suffix 2>/dev/null);
+  test "$slot" || slot=$($BB grep -o 'androidboot.slot_suffix=.*$' /proc/cmdline | $BB cut -d\  -f1 | $BB cut -d= -f2);
+  if [ ! "$slot" ]; then
+    slot=$(getprop ro.boot.slot 2>/dev/null);
+    test "$slot" || slot=$($BB grep -o 'androidboot.slot=.*$' /proc/cmdline | $BB cut -d\  -f1 | $BB cut -d= -f2);
+    test "$slot" && slot=_$slot;
+  fi;
+  if [ "$slot" ]; then
+    if [ -d /postinstall/tmp ]; then
+      case $slot in
+        _a) slot=_b;;
+        _b) slot=_a;;
+      esac;
+    fi;
+    echo "$slot";
+  fi;
+}
 setup_mountpoint() {
   test -L $1 && $BB mv -f $1 ${1}_link;
   if [ ! -d $1 ]; then
@@ -90,8 +108,7 @@ umount_apex() {
 }
 mount_all() {
   if ! is_mounted /data; then
-    $BB mount /data;
-    UMOUNT_DATA=1;
+    $BB mount /data && UMOUNT_DATA=1;
   fi;
   $BB mount -o ro -t auto /vendor 2>/dev/null;
   setup_mountpoint $ANDROID_ROOT;
@@ -111,12 +128,13 @@ mount_all() {
       if [ $? != 0 ]; then
         ($BB umount /system;
         $BB umount -l /system) 2>/dev/null;
-        if [ "$(getprop ro.boot.dynamic_partitions 2>/dev/null)" ]; then
-          test -e /dev/block/mapper/system || local slot=$(getprop ro.boot.slot_suffix 2>/dev/null);
+        if [ -d /dev/block/mapper ]; then
+          test -e /dev/block/mapper/system || local slot=$(target_slot);
           $BB mount -o ro -t auto /dev/block/mapper/vendor$slot /vendor;
           $BB mount -o ro -t auto /dev/block/mapper/system$slot /system_root;
         else
-          test -e /dev/block/bootdevice/by-name/system || local slot=$(getprop ro.boot.slot_suffix 2>/dev/null);
+          test -e /dev/block/bootdevice/by-name/system || local slot=$(target_slot);
+          $BB mount -o ro -t auto /dev/block/bootdevice/by-name/vendor$slot /vendor 2>/dev/null;
           $BB mount -o ro -t auto /dev/block/bootdevice/by-name/system$slot /system_root;
         fi;
       fi;

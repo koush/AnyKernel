@@ -30,7 +30,7 @@ ui_printfile() {
 }
 show_progress() { echo "progress $1 $2" >> $OUTFD; }
 file_getprop() { $BB grep "^$2=" "$1" | $BB cut -d= -f2-; }
-target_slot() {
+find_slot() {
   local slot=$(getprop ro.boot.slot_suffix 2>/dev/null);
   test "$slot" || slot=$($BB grep -o 'androidboot.slot_suffix=.*$' /proc/cmdline | $BB cut -d\  -f1 | $BB cut -d= -f2);
   if [ ! "$slot" ]; then
@@ -38,15 +38,7 @@ target_slot() {
     test "$slot" || slot=$($BB grep -o 'androidboot.slot=.*$' /proc/cmdline | $BB cut -d\  -f1 | $BB cut -d= -f2);
     test "$slot" && slot=_$slot;
   fi;
-  if [ "$slot" ]; then
-    if [ -d /postinstall/tmp ]; then
-      case $slot in
-        _a) slot=_b;;
-        _b) slot=_a;;
-      esac;
-    fi;
-    echo "$slot";
-  fi;
+  test "$slot" && echo "$slot";
 }
 setup_mountpoint() {
   test -L $1 && $BB mv -f $1 ${1}_link;
@@ -107,6 +99,9 @@ umount_apex() {
   unset ANDROID_RUNTIME_ROOT ANDROID_TZDATA_ROOT BOOTCLASSPATH;
 }
 mount_all() {
+  if ! is_mounted /cache; then
+    $BB mount /cache 2>/dev/null && UMOUNT_CACHE=1;
+  fi;
   if ! is_mounted /data; then
     $BB mount /data && UMOUNT_DATA=1;
   fi;
@@ -129,11 +124,11 @@ mount_all() {
         ($BB umount /system;
         $BB umount -l /system) 2>/dev/null;
         if [ -d /dev/block/mapper ]; then
-          test -e /dev/block/mapper/system || local slot=$(target_slot);
+          test -e /dev/block/mapper/system || local slot=$(find_slot);
           $BB mount -o ro -t auto /dev/block/mapper/vendor$slot /vendor;
           $BB mount -o ro -t auto /dev/block/mapper/system$slot /system_root;
         else
-          test -e /dev/block/bootdevice/by-name/system || local slot=$(target_slot);
+          test -e /dev/block/bootdevice/by-name/system || local slot=$(find_slot);
           $BB mount -o ro -t auto /dev/block/bootdevice/by-name/vendor$slot /vendor 2>/dev/null;
           $BB mount -o ro -t auto /dev/block/bootdevice/by-name/system$slot /system_root;
         fi;
@@ -168,6 +163,10 @@ umount_all() {
   if [ "$UMOUNT_DATA" ]; then
     $BB umount /data;
     $BB umount -l /data;
+  fi;
+  if [ "$UMOUNT_CACHE" ]; then
+    $BB umount /cache;
+    $BB umount -l /cache;
   fi) 2>/dev/null;
 }
 setup_env() {

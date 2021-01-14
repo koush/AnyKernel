@@ -148,14 +148,14 @@ umount_all() {
   (if [ ! -d /postinstall/tmp ]; then
     $BB umount /system;
     $BB umount -l /system;
-    umount_apex;
     if [ -e /system_root ]; then
       $BB umount /system_root;
       $BB umount -l /system_root;
     fi;
-    $BB umount /mnt/system;
-    $BB umount -l /mnt/system;
   fi;
+  $BB umount /mnt/system;
+  $BB umount -l /mnt/system;
+  umount_apex;
   umount /vendor;
   umount -l /vendor;
   $BB umount /mnt/vendor;

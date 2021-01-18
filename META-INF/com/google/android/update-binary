@@ -105,7 +105,9 @@ mount_all() {
   if ! is_mounted /data; then
     $BB mount /data && UMOUNT_DATA=1;
   fi;
-  $BB mount -o ro -t auto /vendor 2>/dev/null;
+  ($BB mount -o ro -t auto /vendor;
+  $BB mount -o ro -t auto /product;
+  $BB mount -o ro -t auto /persist) 2>/dev/null;
   setup_mountpoint $ANDROID_ROOT;
   if ! is_mounted $ANDROID_ROOT; then
     $BB mount -o ro -t auto $ANDROID_ROOT 2>/dev/null;
@@ -126,10 +128,13 @@ mount_all() {
         if [ -d /dev/block/mapper ]; then
           [ -e /dev/block/mapper/system ] || local slot=$(find_slot);
           $BB mount -o ro -t auto /dev/block/mapper/vendor$slot /vendor;
+          $BB mount -o ro -t auto /dev/block/mapper/product$slot /product 2>/dev/null;
           $BB mount -o ro -t auto /dev/block/mapper/system$slot /system_root;
         else
           [ -e /dev/block/bootdevice/by-name/system ] || local slot=$(find_slot);
-          $BB mount -o ro -t auto /dev/block/bootdevice/by-name/vendor$slot /vendor 2>/dev/null;
+          ($BB mount -o ro -t auto /dev/block/bootdevice/by-name/vendor$slot /vendor;
+          $BB mount -o ro -t auto /dev/block/bootdevice/by-name/product$slot /product;
+          $BB mount -o ro -t auto /dev/block/bootdevice/by-name/persist$slot /persist) 2>/dev/null;
           $BB mount -o ro -t auto /dev/block/bootdevice/by-name/system$slot /system_root;
         fi;
       fi;
@@ -145,6 +150,7 @@ mount_all() {
   fi;
 }
 umount_all() {
+  local mount;
   (if [ ! -d /postinstall/tmp ]; then
     $BB umount /system;
     $BB umount -l /system;
@@ -156,10 +162,12 @@ umount_all() {
   $BB umount /mnt/system;
   $BB umount -l /mnt/system;
   umount_apex;
-  umount /vendor;
+  umount /vendor; # busybox umount /vendor breaks recovery on some devices
   umount -l /vendor;
-  $BB umount /mnt/vendor;
-  $BB umount -l /mnt/vendor;
+  for mount in /mnt/vendor /product /mnt/product /persist; do
+    $BB umount $mount;
+    $BB umount -l $mount;
+  done;
   if [ "$UMOUNT_DATA" ]; then
     $BB umount /data;
     $BB umount -l /data;
@@ -370,7 +378,7 @@ do_modules() {
     cd $AKHOME/modules;
     ui_print " " "Pushing modules...";
     if [ -d /dev/block/mapper ]; then
-      for block in system vendor; do
+      for block in system vendor product; do
         for slot in "" _a _b; do
           $BB blockdev --setrw /dev/block/mapper/$block$slot 2>/dev/null;
         done;
@@ -378,13 +386,15 @@ do_modules() {
     fi;
     if [ ! -d /postinstall/tmp ]; then
       $BB mount -o rw,remount -t auto /system;
-      $BB mount -o rw,remount -t auto /vendor 2>/dev/null;
+      ($BB mount -o rw,remount -t auto /vendor;
+      $BB mount -o rw,remount -t auto /product) 2>/dev/null;
     fi;
     for module in $(find . -name '*.ko'); do
       modtarget=$POSTINSTALL$(echo $module | $BB cut -c2-);
       if [ ! -e $modtarget ]; then
         case $module in
           */vendor/*) modcon=vendor;;
+          */product/*) modcon=product;;
           *) modcon=system;;
         esac;
       fi;
@@ -404,7 +414,8 @@ do_modules() {
     done;
     if [ ! -d /postinstall/tmp ]; then
       $BB mount -o ro,remount -t auto /system;
-      $BB mount -o ro,remount -t auto /vendor 2>/dev/null;
+      ($BB mount -o ro,remount -t auto /vendor;
+      $BB mount -o ro,remount -t auto /product) 2>/dev/null;
     fi;
   fi;
   cd $AKHOME;

@@ -53,6 +53,8 @@ __supported.patchlevels=__ will match against ro.build.version.security_patch fr
 
 `slot_select=active|inactive` may be added to allow specifying the target slot. If omitted the default remains `active`.
 
+`no_block_display=1` may be added to disable output of the detected final used partition+slot path for zips which choose to include their own custom output instead.
+
 ## // Command Methods ##
 ```
 ui_print "<text>" [...]

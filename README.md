@@ -75,8 +75,8 @@ replace_string <file> <if search string> <original string> <replacement string> 
 replace_section <file> <begin search string> <end search string> <replacement string>
 remove_section <file> <begin search string> <end search string>
 insert_line <file> <if search string> <before|after> <line match string> <inserted line>
-replace_line <file> <line replace string> <replacement line>
-remove_line <file> <line match string>
+replace_line <file> <line replace string> <replacement line> <scope>
+remove_line <file> <line match string> <scope>
 prepend_file <file> <if search string> <patch file>
 insert_file <file> <if search string> <before|after> <line match string> <patch file>
 append_file <file> <if search string> <patch file>
@@ -99,7 +99,7 @@ __"if search string"__ is the string it looks for to decide whether it needs to 
 
 Similarly, __"line match string"__ and __"line replace string"__ are the search strings that locate where the modification needs to be made for those commands, __"begin search string"__ and __"end search string"__ are both required to select the first and last lines of the script block to be replaced for _replace_section_, and __"mount match name"__ and __"fs match type"__ are both required to narrow the _patch_fstab_ command down to the correct entry.
 
-__"scope"__ may be specified as __"global"__ to force all instances of the string targeted by _replace_string_ to be replaced. Omitted or set to anything else and it will perform the default first-match replacement.
+__"scope"__ may be specified as __"global"__ to force all instances of the string/line targeted by _replace_string_, _replace_line_ or _remove_line_ to be replaced/removed accordingly. Omitted or set to anything else and it will perform the default first-match action.
 
 __"before|after"__ requires you simply specify __"before"__ or __"after"__ for the placement of the inserted line, in relation to __"line match string"__.
 

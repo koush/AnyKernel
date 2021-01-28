@@ -15,7 +15,7 @@ split_img=$home/split_img;
 # ui_print "<text>" [...]
 ui_print() {
   until [ ! "$1" ]; do
-    echo -e "ui_print $1
+    echo "ui_print $1
       ui_print" >> /proc/self/fd/$OUTFD;
     shift;
   done;
@@ -520,19 +520,27 @@ insert_line() {
   fi;
 }
 
-# replace_line <file> <line replace string> <replacement line>
+# replace_line <file> <line replace string> <replacement line> <scope>
 replace_line() {
+  local lines line;
   if grep -q "$2" $1; then
-    local line=$(grep -n "$2" $1 | head -n1 | cut -d: -f1);
-    sed -i "${line}s;.*;${3};" $1;
+    lines=$(grep -n "$2" $1 | cut -d: -f1 | sort -nr);
+    [ "$4" == "global" ] || lines=$(echo "$lines" | tail -n1);
+    for line in $lines; do
+      sed -i "${line}s;.*;${3};" $1;
+    done;
   fi;
 }
 
-# remove_line <file> <line match string>
+# remove_line <file> <line match string> <scope>
 remove_line() {
+  local lines line;
   if grep -q "$2" $1; then
-    local line=$(grep -n "$2" $1 | head -n1 | cut -d: -f1);
-    sed -i "${line}d" $1;
+    lines=$(grep -n "$2" $1 | cut -d: -f1 | sort -nr);
+    [ "$3" == "global" ] || lines=$(echo "$lines" | tail -n1);
+    for line in $lines; do
+      sed -i "${line}d" $1;
+    done;
   fi;
 }
 

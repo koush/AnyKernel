@@ -159,12 +159,10 @@ umount_all() {
       $BB umount -l /system_root;
     fi;
   fi;
-  $BB umount /mnt/system;
-  $BB umount -l /mnt/system;
   umount_apex;
   umount /vendor; # busybox umount /vendor breaks recovery on some devices
   umount -l /vendor;
-  for mount in /mnt/vendor /product /mnt/product /persist; do
+  for mount in /mnt/system /mnt/vendor /product /mnt/product /persist; do
     $BB umount $mount;
     $BB umount -l $mount;
   done;

@@ -418,12 +418,13 @@ flash_dtbo() {
     fi;
   done;
 
-  if [ "$dtbo" ]; then
+  if [ "$dtbo" -a ! -f dtbo_flashed ]; then
     dtboblock=/dev/block/bootdevice/by-name/dtbo$slot;
     if [ ! -e "$dtboblock" ]; then
       abort "dtbo partition could not be found. Aborting...";
     fi;
     blockdev --setrw $dtboblock 2>/dev/null;
+    ui_print " " "$dtboblock";
     if [ -f "$bin/flash_erase" -a -f "$bin/nandwrite" ]; then
       $bin/flash_erase $dtboblock 0 0;
       $bin/nandwrite -p $dtboblock $dtbo;
@@ -436,6 +437,7 @@ flash_dtbo() {
     if [ $? != 0 ]; then
       abort "Flashing dtbo failed. Aborting...";
     fi;
+    touch dtbo_flashed;
   fi;
 }
 ### write_boot (repack ramdisk then build, sign and write image and dtbo)

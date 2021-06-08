@@ -43,7 +43,7 @@ __supported.versions=__ will match against ro.build.version.release from the cur
 
 __supported.patchlevels=__ will match against ro.build.version.security_patch from the current ROM's build.prop. It can be set as a closed or open-ended range of dates in the format YYYY-MM, whitespace optional, e.g. `2019-04 - 2019-06`, `2019-04 -` or `- 2019-06` where the last two examples show setting a minimum and maximum, respectively.
 
-`block=auto` instead of a direct block filepath enables detection of the device boot partition for use with broad, device non-specific zips. Also accepts specifically `boot` or `recovery`.
+`block=auto` instead of a direct block filepath enables detection of the device boot partition for use with broad, device non-specific zips. Also accepts specifically `boot`, `recovery` or `vendor_boot`.
 
 `is_slot_device=1` enables detection of the suffix for the active boot partition on slot-based devices and will add this to the end of the supplied `block=` path. Also accepts `auto` for use with broad, device non-specific zips.
 

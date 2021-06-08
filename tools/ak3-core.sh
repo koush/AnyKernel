@@ -711,12 +711,13 @@ setup_ak() {
   # automate simple multi-partition setup for boot_img_hdr_v3 + vendor_boot
   cd $home;
   if [ -e "/dev/block/bootdevice/by-name/vendor_boot$slot" -a ! -f vendor_setup ] && [ -f dtb -o -d vendor_ramdisk -o -d vendor_patch ]; then
-    mkdir boot-files;
+    echo "Setting up for simple automatic vendor_boot flashing..." >&2;
+    (mkdir boot-files;
     mv -f Image* ramdisk patch boot-files;
     mkdir vendor_boot-files;
     mv -f dtb vendor_boot-files;
     mv -f vendor_ramdisk vendor_boot-files/ramdisk;
-    mv -f vendor_patch vendor_boot-files/patch;
+    mv -f vendor_patch vendor_boot-files/patch) 2>/dev/null;
     touch vendor_setup;
   fi;
 

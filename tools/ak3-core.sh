@@ -654,9 +654,11 @@ reset_ak() {
 
   current=$(dirname $home/*-files/current);
   if [ -d "$current" ]; then
-    rm -rf $current/ramdisk;
     for i in $bootimg boot-new.img; do
       [ -e $i ] && cp -af $i $current;
+    done;
+    for i in $current/*; do
+      [ -f $i ] && rm -f $home/$(basename $i);
     done;
   fi;
   [ -d $split_img ] && rm -rf $ramdisk;
@@ -667,23 +669,13 @@ reset_ak() {
   else
     rm -rf $patch $home/rdtmp;
   fi;
+  ui_print " ";
   setup_ak;
 }
 
 # setup_ak
 setup_ak() {
   local blockfiles parttype name part mtdmount mtdpart mtdname target;
-
-  # allow multi-partition ramdisk modifying configurations (using reset_ak)
-  if [ "$block" ] && [ ! -d "$ramdisk" -a ! -d "$patch" ]; then
-    blockfiles=$home/$(basename $block)-files;
-    if [ "$(ls $blockfiles 2>/dev/null)" ]; then
-      cp -af $blockfiles/* $home;
-    else
-      mkdir -p $blockfiles;
-    fi;
-    touch $blockfiles/current;
-  fi;
 
   # slot detection enabled by is_slot_device=1 or auto (from anykernel.sh)
   case $is_slot_device in
@@ -709,20 +701,42 @@ setup_ak() {
         esac;
       fi;
       if [ ! "$slot" -a "$is_slot_device" == 1 ]; then
-        abort "Unable to determine active boot slot. Aborting...";
+        abort "Unable to determine active slot. Aborting...";
       fi;
     ;;
   esac;
+
+  # automate multi-partition setup for boot_img_hdr_v3 + vendor_boot
+  cd $home;
+  if [ -e "/dev/block/bootdevice/by-name/vendor_boot$slot" -a -f dtb -a ! -f vndr_setup ]; then
+    mkdir boot-files;
+    mv -f Image* ramdisk patch boot-files;
+    mkdir vendor_boot-files;
+    mv -f dtb vendor_boot-files;
+    touch vndr_setup;
+  fi;
+
+  # allow multi-partition ramdisk modifying configurations (using reset_ak)
+  if [ "$block" ] && [ ! -d "$ramdisk" -a ! -d "$patch" ]; then
+    blockfiles=$home/$(basename $block)-files;
+    if [ "$(ls $blockfiles 2>/dev/null)" ]; then
+      cp -af $blockfiles/* $home;
+    else
+      mkdir -p $blockfiles;
+    fi;
+    touch $blockfiles/current;
+  fi;
 
   # target block partition detection enabled by block=boot recovery or auto (from anykernel.sh)
   case $block in
      auto|"") block=boot;;
   esac;
   case $block in
-    boot|recovery)
+    boot|recovery|vendor_boot)
       case $block in
         boot) parttype="ramdisk boot BOOT LNX android_boot bootimg KERN-A kernel KERNEL";;
         recovery) parttype="ramdisk_recovery recovery RECOVERY SOS android_recovery";;
+        vendor_boot) parttype="vendor_boot";;
       esac;
       for name in $parttype; do
         for part in $name$slot $name; do

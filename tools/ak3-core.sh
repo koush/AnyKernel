@@ -663,6 +663,7 @@ reset_ak() {
       [ -f $i ] && rm -f $home/$(basename $i);
     done;
   fi;
+  [ -f $split_img/.magisk ] && touch $home/magisk_patched;
   [ -d $split_img ] && rm -rf $ramdisk;
   rm -rf $bootimg $split_img $home/*-new* $home/*-files/current;
 

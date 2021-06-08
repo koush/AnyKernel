@@ -367,7 +367,7 @@ do_modules() {
   if [ "$(file_getprop anykernel.sh do.systemless)" == 1 ]; then
     cd $AKHOME/modules;
     ui_print " " "Creating kernel helper Magisk module...";
-    if [ -d /data/adb/magisk -a -f $AKHOME/split_img/.magisk ]; then
+    if [ -d /data/adb/magisk -a -f $AKHOME/magisk_patched ]; then
       umask=$(umask);
       umask 022;
       moddir=/data/adb/modules/ak3-helper;

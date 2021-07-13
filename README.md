@@ -131,7 +131,7 @@ Optional supported binaries which may be placed in /tools to enable built-in exp
 * `elftool` (with `unpackelf`) - Sony ELF kernel.elf format support, repacking as ELF for older Sony devices
 * `mkmtkhdr` (with `unpackelf`) - MTK device boot image section headers support for Sony devices
 * `futility` + `chromeos` test keys directory - Google ChromeOS signature support
-* `boot_signer-dexed.jar` + `avb` keys directory - Google Android Verified Boot (AVB) signature support
+* `boot_signer-dexed.jar` + `avb` keys directory - Google Android Verified Boot 1.0 (AVBv1) signature support
 * `rkcrc` - Rockchip KRNL ramdisk image support
 
 Optionally moving ARM builds to tools/arm and putting x86 builds in tools/x86 will enable architecture detection for use with broad, device non-specific zips.

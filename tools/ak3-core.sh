@@ -657,7 +657,7 @@ reset_ak() {
 
   current=$(dirname $home/*-files/current);
   if [ -d "$current" ]; then
-    for i in $bootimg boot-new.img; do
+    for i in $bootimg $home/boot-new.img; do
       [ -e $i ] && cp -af $i $current;
     done;
     for i in $current/*; do
@@ -672,7 +672,9 @@ reset_ak() {
   else
     rm -rf $patch $home/rdtmp;
   fi;
-  ui_print " ";
+  if [ ! "$no_block_display" ]; then
+    ui_print " ";
+  fi;
   setup_ak;
 }
 

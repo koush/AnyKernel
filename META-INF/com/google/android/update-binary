@@ -109,19 +109,24 @@ umount_apex() {
   $BB rm -rf /apex 2>/dev/null;
 }
 mount_all() {
+  local byname mount slot system;
   if ! is_mounted /cache; then
     $BB mount /cache 2>/dev/null && UMOUNT_CACHE=1;
   fi;
   if ! is_mounted /data; then
     $BB mount /data && UMOUNT_DATA=1;
   fi;
-  ($BB mount -o ro -t auto /vendor;
-  $BB mount -o ro -t auto /product;
-  $BB mount -o ro -t auto /persist) 2>/dev/null;
+  (for mount in /vendor /product /system_ext /persist; do
+    $BB mount -o ro -t auto $mount;
+  done) 2>/dev/null;
   setup_mountpoint $ANDROID_ROOT;
   if ! is_mounted $ANDROID_ROOT; then
     $BB mount -o ro -t auto $ANDROID_ROOT 2>/dev/null;
   fi;
+  byname=bootdevice/by-name;
+  [ -d /dev/block/$byname ] || byname=$($BB find /dev/block/platform -type d -name by-name 2>/dev/null | $BB head -n1 | $BB cut -d/ -f4-);
+  [ -d /dev/block/mapper ] && byname=mapper;
+  [ -e /dev/block/$byname/system ] || slot=$(find_slot);
   case $ANDROID_ROOT in
     /system_root) setup_mountpoint /system;;
     /system)
@@ -135,28 +140,20 @@ mount_all() {
       if [ $? != 0 ]; then
         ($BB umount /system;
         $BB umount -l /system) 2>/dev/null;
-        if [ -d /dev/block/mapper ]; then
-          [ -e /dev/block/mapper/system ] || local slot=$(find_slot);
-          $BB mount -o ro -t auto /dev/block/mapper/vendor$slot /vendor;
-          $BB mount -o ro -t auto /dev/block/mapper/product$slot /product 2>/dev/null;
-          $BB mount -o ro -t auto /dev/block/mapper/system$slot /system_root;
-        else
-          [ -e /dev/block/bootdevice/by-name/system ] || local slot=$(find_slot);
-          ($BB mount -o ro -t auto /dev/block/bootdevice/by-name/vendor$slot /vendor;
-          $BB mount -o ro -t auto /dev/block/bootdevice/by-name/product$slot /product;
-          $BB mount -o ro -t auto /dev/block/bootdevice/by-name/persist$slot /persist) 2>/dev/null;
-          $BB mount -o ro -t auto /dev/block/bootdevice/by-name/system$slot /system_root;
-        fi;
+        $BB mount -o ro -t auto /dev/block/$byname/system$slot /system_root;
       fi;
     ;;
   esac;
   if is_mounted /system_root; then
     mount_apex;
-    if [ -f /system_root/build.prop ]; then
-      $BB mount -o bind /system_root /system;
-    else
-      $BB mount -o bind /system_root/system /system;
-    fi;
+    [ -f /system_root/system/build.prop ] && system=/system;
+    for mount in /vendor /product /system_ext /persist; do
+      if [ -L /system_root$system$mount ]; then
+        setup_mountpoint $mount;
+        $BB mount -o ro -t auto /dev/block/$byname$mount$slot $mount;
+      fi;
+    done;
+    $BB mount -o bind /system_root$system /system;
   fi;
 }
 umount_all() {
@@ -172,7 +169,7 @@ umount_all() {
   fi;
   umount /vendor; # busybox umount /vendor breaks recovery on some hacky devices
   umount -l /vendor;
-  for mount in /mnt/system /mnt/vendor /product /mnt/product /persist; do
+  for mount in /mnt/system /mnt/vendor /product /mnt/product /system_ext /mnt/system_ext /persist; do
     $BB umount $mount;
     $BB umount -l $mount;
   done;

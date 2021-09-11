@@ -147,12 +147,16 @@ mount_all() {
   if is_mounted /system_root; then
     mount_apex;
     [ -f /system_root/system/build.prop ] && system=/system;
-    for mount in /vendor /product /system_ext /persist; do
-      if [ -L /system_root$system$mount ]; then
+    for mount in /vendor /product /system_ext; do
+      if ! is_mounted $mount && [ -L /system_root$system$mount ]; then
         setup_mountpoint $mount;
         $BB mount -o ro -t auto /dev/block/$byname$mount$slot $mount;
       fi;
     done;
+    if ! is_mounted /persist && [ -e /dev/block/bootdevice/by-name/persist ]; then
+      setup_mountpoint /persist;
+      $BB mount -o ro -t auto /dev/block/bootdevice/by-name/persist;
+    fi;
     $BB mount -o bind /system_root$system /system;
   fi;
 }

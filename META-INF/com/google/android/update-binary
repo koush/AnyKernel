@@ -243,7 +243,7 @@ restore_env() {
   $BB umount -l /dev/random) 2>/dev/null;
 }
 debugging() {
-  case $(basename "$ZIPFILE" .zip) in
+  case $($BB basename "$ZIPFILE" .zip) in
     *-debugging)
       ui_print " " "Creating debugging archive in $DIR...";
       [ -f /tmp/recovery.log ] && local log=/tmp/recovery.log;
@@ -345,7 +345,7 @@ do_levelcheck() {
   fi;
 }
 dump_moduleinfo() {
-cat <<EOF > $1;
+$BB cat <<EOF > $1;
 name=AK3 Helper Module
 version=$($BB awk '{ print $3 }' $AKHOME/vertmp) $($BB grep -oE '#.[0-9]' $AKHOME/vertmp)
 versionCode=1
@@ -354,7 +354,7 @@ description=$KERNEL_STRING
 EOF
 }
 dump_moduleremover() {
-cat <<'EOF' > $1;
+$BB cat <<'EOF' > $1;
 #!/system/bin/sh
 MODDIR=${0%/*};
 if [ "$(cat /proc/version)" != "$(cat $MODDIR/version)" ]; then
@@ -373,13 +373,13 @@ do_modules() {
       umask 022;
       moddir=/data/adb/modules/ak3-helper;
       $BB rm -rf $moddir;
-      mkdir -p system $moddir;
+      $BB mkdir -p system $moddir;
       ($BB mv -f product system;
       $BB mv -f vendor system) 2>/dev/null;
       $BB cp -rLf * $moddir;
       dump_moduleinfo $moddir/module.prop;
       dump_moduleremover $moddir/post-fs-data.sh;
-      cp -f $AKHOME/vertmp $moddir/version;
+      $BB cp -f $AKHOME/vertmp $moddir/version;
       umask $umask;
     else
       ui_print "Magisk installation not found. Skipped!";
@@ -399,7 +399,7 @@ do_modules() {
       ($BB mount -o rw,remount -t auto /vendor;
       $BB mount -o rw,remount -t auto /product) 2>/dev/null;
     fi;
-    for module in $(find . -name '*.ko'); do
+    for module in $($BB find . -name '*.ko'); do
       modtarget=$POSTINSTALL$(echo $module | $BB cut -c2-);
       if [ ! -e $modtarget ]; then
         case $module in
@@ -411,7 +411,7 @@ do_modules() {
       if is_mounted $modtarget; then
         $BB mount -o rw,remount -t auto $modtarget;
       fi;
-      mkdir -p $(dirname $modtarget);
+      $BB mkdir -p $($BB dirname $modtarget);
       $BB cp -rLf $module $modtarget;
       $BB chown 0:0 $modtarget;
       $BB chmod 644 $modtarget;

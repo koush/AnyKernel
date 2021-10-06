@@ -119,8 +119,8 @@ You may also use _ui_print "\<text\>"_ to write messages back to the recovery du
 
 The AK3 repo includes current ARM builds of `magiskboot`, `magiskpolicy` and `busybox` by default to keep the basic package small. Builds for other architectures and optional binaries (see below) are available from the latest Magisk zip, or my latest AIK-mobile and FlashIt packages, respectively, here:
 
-https://forum.xda-developers.com/showthread.php?t=2073775 (Android Image Kitchen thread)  
-https://forum.xda-developers.com/showthread.php?t=2239421 (Odds and Ends thread)
+https://forum.xda-developers.com/t/tool-android-image-kitchen-unpack-repack-kernel-ramdisk-win-android-linux-mac.2073775/ (Android Image Kitchen thread)  
+https://forum.xda-developers.com/t/tools-zips-scripts-osm0sis-odds-and-ends-multiple-devices-platforms.2239421/ (Odds and Ends thread)
 
 Optional supported binaries which may be placed in /tools to enable built-in expanded functionality are as follows:
 * `mkbootfs` - for broken recoveries, or, booted flash support for a script/app via bind mount to /tmp (deprecated/use with caution)
@@ -152,7 +152,7 @@ _The LICENSE file must remain in the final zip to comply with licenses for binar
 
 If supporting a recovery that forces zip signature verification (like Cyanogen Recovery) then you will need to also sign your zip using the method I describe here:
 
-http://forum.xda-developers.com/android/software-hacking/dev-complete-shell-script-flashable-zip-t2934449
+https://forum.xda-developers.com/t/dev-template-complete-shell-script-flashable-zip-replacement-signing-script.2934449/
 
 Not required, but any tweaks you can't hardcode into the source (best practice) should be added with an additional init.tweaks.rc or bootscript.sh to minimize the necessary ramdisk changes. On newer devices Magisk allows these within /overlay.d - see examples.
 
@@ -180,6 +180,6 @@ Now that you've got a ready zip for your device, you might be wondering how to k
 
 Then you should be able to `git pull upstream master` from your master branch and either merge or cherry-pick the new AK3 commits into your device branches as needed.
 
-___For further support and usage examples please see the AnyKernel3 XDA thread:___ _https://forum.xda-developers.com/showthread.php?t=2670512_
+___For further support and usage examples please see the AnyKernel3 XDA thread:___ _https://forum.xda-developers.com/t/dev-template-anykernel3-easily-mod-rom-ramdisk-pack-image-gz-flashable-zip.2670512/_
 
 __Have fun!__

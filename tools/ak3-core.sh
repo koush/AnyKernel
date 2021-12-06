@@ -390,7 +390,7 @@ flash_boot() {
   if [ ! -f boot-new.img ]; then
     abort "No repacked image found to flash. Aborting...";
   elif [ "$(wc -c < boot-new.img)" -gt "$(wc -c < boot.img)" ]; then
-    abort "New image larger than boot partition. Aborting...";
+    abort "New image larger than target partition. Aborting...";
   fi;
   blockdev --setrw $block 2>/dev/null;
   if [ -f "$bin/flash_erase" -a -f "$bin/nandwrite" ]; then
@@ -407,122 +407,63 @@ flash_boot() {
   fi;
 }
 
-# flash_dtbo (flash dtbo only)
-flash_dtbo() {
-  local i dtbo dtboblock;
+# flash_generic <name>
+flash_generic() {
+  local file img imgblock isro path;
 
   cd $home;
-  for i in dtbo dtbo.img; do
-    if [ -f $i ]; then
-      dtbo=$i;
+  for file in $1 $1.img; do
+    if [ -f $file ]; then
+      img=$file;
       break;
     fi;
   done;
 
-  if [ "$dtbo" -a ! -f dtbo_flashed ]; then
-    dtboblock=/dev/block/bootdevice/by-name/dtbo$slot;
-    if [ ! -e "$dtboblock" ]; then
-      abort "dtbo partition could not be found. Aborting...";
+  if [ "$img" -a ! -f ${1}_flashed ]; then
+    for path in /dev/block/bootdevice/by-name /dev/block/mapper; do
+      for file in $1 $1$slot; do
+        if [ -e $path/$file ]; then
+          imgblock=$path/$file;
+          break 2;
+        fi;
+      done;
+    done;
+    if [ ! "$imgblock" ]; then
+      abort "$1 partition could not be found. Aborting...";
     fi;
-    blockdev --setrw $dtboblock 2>/dev/null;
-    ui_print " " "$dtboblock";
+    # TODO: add dynamic partition resizing using lptools_static instead of aborting
+    if [ "$(wc -c < $img)" -gt "$(wc -c < $imgblock)" ]; then
+      abort "New $1 image larger than $1 partition. Aborting...";
+    fi;
+    isro=$(blockdev --getro $imgblock 2>/dev/null);
+    blockdev --setrw $imgblock 2>/dev/null;
+    ui_print " " "$imgblock";
     if [ -f "$bin/flash_erase" -a -f "$bin/nandwrite" ]; then
-      $bin/flash_erase $dtboblock 0 0;
-      $bin/nandwrite -p $dtboblock $dtbo;
+      $bin/flash_erase $imgblock 0 0;
+      $bin/nandwrite -p $imgblock $img;
     elif [ "$customdd" ]; then
-      dd if=/dev/zero of=$dtboblock 2>/dev/null;
-      dd if=$dtbo of=$dtboblock;
+      dd if=/dev/zero of=$imgblock 2>/dev/null;
+      dd if=$img of=$imgblock;
     else
-      cat $dtbo /dev/zero > $dtboblock 2>/dev/null || true;
+      cat $img /dev/zero > $imgblock 2>/dev/null || true;
     fi;
     if [ $? != 0 ]; then
-      abort "Flashing dtbo failed. Aborting...";
+      abort "Flashing $1 failed. Aborting...";
     fi;
-    touch dtbo_flashed;
+    if [ "$isro" != 0 ]; then
+      blockdev --setro $imgblock 2>/dev/null;
+    fi;
+    touch ${1}_flashed;
   fi;
 }
 
-# flash_vendor_boot (flash vendor_boot only)
-flash_vendor_boot() {
-  local i vendor_boot vendor_bootblock;
-
-  cd $home;
-  for i in vendor_boot vendor_boot.img; do
-    if [ -f $i ]; then
-      vendor_boot=$i;
-      break;
-    fi;
-  done;
-
-  if [ "$vendor_boot" -a ! -f vendor_boot_flashed ]; then
-    vendor_bootblock=/dev/block/bootdevice/by-name/vendor_boot$slot;
-    if [ ! -e "$vendor_bootblock" ]; then
-      abort "vendor_boot partition could not be found. Aborting...";
-    fi;
-    blockdev --setrw $vendor_bootblock 2>/dev/null;
-    ui_print " " "$vendor_bootblock";
-    if [ -f "$bin/flash_erase" -a -f "$bin/nandwrite" ]; then
-      $bin/flash_erase $vendor_bootblock 0 0;
-      $bin/nandwrite -p $vendor_bootblock $vendor_boot;
-    elif [ "$customdd" ]; then
-      dd if=/dev/zero of=$vendor_bootblock 2>/dev/null;
-      dd if=$vendor_boot of=$vendor_bootblock;
-    else
-      cat $vendor_boot /dev/zero > $vendor_bootblock 2>/dev/null || true;
-    fi;
-    if [ $? != 0 ]; then
-      abort "Flashing vendor_boot failed. Aborting...";
-    fi;
-    touch vendor_boot_flashed;
-  fi;
-}
-
-# flash_vendor_dlkm (flash vendor_dlkm only)
-flash_vendor_dlkm() {
-  local i vendor_dlkm vendor_dlkmblock;
-
-  cd $home;
-  for i in vendor_dlkm vendor_dlkm.img; do
-    if [ -f $i ]; then
-      vendor_dlkm=$i;
-      break;
-    fi;
-  done;
-
-  if [ "$vendor_dlkm" -a ! -f vendor_dlkm_flashed ]; then
-    vendor_dlkmblock=/dev/block/mapper/vendor_dlkm$slot;
-    if [ ! -e "$vendor_dlkmblock" ]; then
-      abort "vendor_dlkm partition could not be found. Aborting...";
-    fi;
-    if [ "$(wc -c < ${vendor_dlkm})" -gt "$(wc -c < ${vendor_dlkmblock})" ]; then
-      abort "New vendor_dlkm image larger than vendor_dlkm partition. Aborting...";
-    fi;
-    blockdev --setrw $vendor_dlkmblock 2>/dev/null;
-    ui_print " " "$vendor_dlkmblock";
-    if [ -f "$bin/flash_erase" -a -f "$bin/nandwrite" ]; then
-      $bin/flash_erase $vendor_dlkmblock 0 0;
-      $bin/nandwrite -p $vendor_dlkmblock $vendor_dlkm;
-    elif [ "$customdd" ]; then
-      dd if=/dev/zero of=$vendor_dlkmblock 2>/dev/null;
-      dd if=$vendor_dlkm of=$vendor_dlkmblock;
-    else
-      cat $vendor_dlkm /dev/zero > $vendor_dlkmblock 2>/dev/null || true;
-    fi;
-    if [ $? != 0 ]; then
-      abort "Flashing vendor_dlkm failed. Aborting...";
-    fi;
-    blockdev --setro $vendor_dlkmblock 2>/dev/null;
-    touch vendor_dlkm_flashed;
-  fi;
-}
-
-### write_boot (repack ramdisk then build, sign and write image and dtbo)
+### write_boot (repack ramdisk then build, sign and write image, vendor_dlkm and dtbo)
 write_boot() {
-  flash_vendor_dlkm;
-  flash_vendor_boot;
+  flash_generic vendor_dlkm; # TODO: move below boot once resizing is supported
   repack_ramdisk;
   flash_boot;
-  flash_dtbo;
+  flash_generic vendor_boot; # temporary until hdr v4 can be unpacked/repacked fully by magiskboot
+  flash_generic dtbo;
 }
 ###
 

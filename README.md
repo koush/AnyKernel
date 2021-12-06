@@ -88,7 +88,7 @@ patch_ueventd <ueventd file> <device node> <permissions> <chown> <chgrp>
 
 repack_ramdisk
 flash_boot
-flash_dtbo
+flash_generic <partition name>
 write_boot
 
 reset_ak [keep]
@@ -138,7 +138,7 @@ Optionally moving ARM builds to tools/arm and putting x86 builds in tools/x86 wi
 
 ## // Instructions ##
 
-1. Place final kernel build product, e.g. Image.gz-dtb or zImage to name a couple, in the zip root (any separate dt, dtb or recovery_dtbo, and/or dtbo should also go here for devices that require custom ones, each will fallback to the original if not included)
+1. Place final kernel build product, e.g. Image.gz-dtb or zImage to name a couple, in the zip root (any separate dt, dtb or recovery_dtbo, dtbo and/or vendor_dlkm should also go here for devices that require custom ones, each will fallback to the original if not included)
 
 2. Place any required ramdisk files in /ramdisk (/vendor_ramdisk for simple multi-partition vendor_boot support) and module files in /modules (with the full path like /modules/system/lib/modules)
 

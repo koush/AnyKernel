@@ -29,7 +29,7 @@ ui_printfile() {
   done < $1;
 }
 show_progress() { echo "progress $1 $2" >> $OUTFD; }
-file_getprop() { $BB grep "^$2=" "$1" | $BB cut -d= -f2-; }
+file_getprop() { $BB grep "^$2=" "$1" | $BB tail -n1 | $BB cut -d= -f2-; }
 find_slot() {
   local slot=$(getprop ro.boot.slot_suffix 2>/dev/null);
   [ "$slot" ] || slot=$($BB grep -o 'androidboot.slot_suffix=.*$' /proc/cmdline | $BB cut -d\  -f1 | $BB cut -d= -f2);

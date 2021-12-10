@@ -34,7 +34,7 @@ contains() {
 
 # file_getprop <file> <property>
 file_getprop() {
-  grep "^$2=" "$1" | cut -d= -f2-;
+  grep "^$2=" "$1" | tail -n1 | cut -d= -f2-;
 }
 ###
 
@@ -328,7 +328,7 @@ flash_boot() {
           fi;
           $bin/magiskboot hexpatch kernel 736B69705F696E697472616D667300 77616E745F696E697472616D667300;
           if [ "$(file_getprop $home/anykernel.sh do.systemless)" == 1 ]; then
-            strings kernel | grep -E 'Linux version.*#' > $home/vertmp;
+            strings kernel | grep -E -m1 'Linux version.*#' > $home/vertmp;
           fi;
           if [ "$comp" ]; then
             $bin/magiskboot compress=$comp kernel kernel.$comp;
@@ -488,7 +488,7 @@ replace_string() {
 # replace_section <file> <begin search string> <end search string> <replacement string>
 replace_section() {
   local begin endstr last end;
-  begin=$(grep -n "$2" $1 | head -n1 | cut -d: -f1);
+  begin=$(grep -n -m1 "$2" $1 | cut -d: -f1);
   if [ "$begin" ]; then
     if [ "$3" == " " -o ! "$3" ]; then
       endstr='^[[:space:]]*$';
@@ -510,7 +510,7 @@ replace_section() {
 # remove_section <file> <begin search string> <end search string>
 remove_section() {
   local begin endstr last end;
-  begin=$(grep -n "$2" $1 | head -n1 | cut -d: -f1);
+  begin=$(grep -n -m1 "$2" $1 | cut -d: -f1);
   if [ "$begin" ]; then
     if [ "$3" == " " -o ! "$3" ]; then
       endstr='^[[:space:]]*$';
@@ -535,7 +535,7 @@ insert_line() {
       before) offset=0;;
       after) offset=1;;
     esac;
-    line=$((`grep -n "$4" $1 | head -n1 | cut -d: -f1` + offset));
+    line=$((`grep -n -m1 "$4" $1 | cut -d: -f1` + offset));
     if [ -f $1 -a "$line" ] && [ "$(wc -l $1 | cut -d\  -f1)" -lt "$line" ]; then
       echo "$5" >> $1;
     else
@@ -583,7 +583,7 @@ insert_file() {
       before) offset=0;;
       after) offset=1;;
     esac;
-    line=$((`grep -n "$4" $1 | head -n1 | cut -d: -f1` + offset));
+    line=$((`grep -n -m1 "$4" $1 | cut -d: -f1` + offset));
     sed -i "${line}s;^;\n;" $1;
     sed -i "$((line - 1))r $patch/$5" $1;
   fi;
@@ -650,7 +650,7 @@ patch_prop() {
   if ! grep -q "^$2=" $1; then
     echo -ne "\n$2=$3\n" >> $1;
   else
-    local line=$(grep -n "^$2=" $1 | head -n1 | cut -d: -f1);
+    local line=$(grep -n -m1 "^$2=" $1 | cut -d: -f1);
     sed -i "${line}s;.*;${2}=${3};" $1;
   fi;
 }
@@ -662,7 +662,7 @@ patch_ueventd() {
   shift 4;
   group="$@";
   newentry=$(printf "%-23s   %-4s   %-8s   %s\n" "$dev" "$perm" "$user" "$group");
-  line=$(grep -n "$dev" $file | head -n1 | cut -d: -f1);
+  line=$(grep -n -m1 "$dev" $file | cut -d: -f1);
   if [ "$line" ]; then
     sed -i "${line}s;.*;${newentry};" $file;
   else

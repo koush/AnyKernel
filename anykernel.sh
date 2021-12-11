@@ -68,6 +68,7 @@ write_boot;
 #block=vendor_boot;
 #is_slot_device=1;
 #ramdisk_compression=auto;
+#keep_vbmeta_flag=auto;
 
 # reset for vendor_boot patching
 #reset_ak;

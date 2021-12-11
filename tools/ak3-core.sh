@@ -356,7 +356,7 @@ flash_boot() {
       none|cpio) nocompflag="-n";;
     esac;
     case $keep_vbmeta_flag in
-      auto) [ "$KEEPVBMETAFLAG" ] || export KEEPVBMETAFLAG=false;;
+      auto|"") [ "$KEEPVBMETAFLAG" ] || export KEEPVBMETAFLAG=false;;
       1) export KEEPVBMETAFLAG=true;;
       *) export KEEPVBMETAFLAG=false;;
     esac;

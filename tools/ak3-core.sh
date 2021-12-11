@@ -349,13 +349,19 @@ flash_boot() {
             *-dtb) rm -f kernel_dtb;;
           esac;
         fi;
-        unset magisk_patched KEEPFORCEENCRYPT KEEPVERITY SHA1 TWOSTAGEINIT;
+        unset magisk_patched KEEPFORCEENCRYPT KEEPVERITY SHA1 TWOSTAGEINIT; # leave KEEPVBMETAFLAG set for repack
       ;;
     esac;
     case $ramdisk_compression in
       none|cpio) nocompflag="-n";;
     esac;
+    case $keep_vbmeta_flag in
+      auto) [ "$KEEPVBMETAFLAG" ] || export KEEPVBMETAFLAG=false;;
+      1) export KEEPVBMETAFLAG=true;;
+      *) export KEEPVBMETAFLAG=false;;
+    esac;
     $bin/magiskboot repack $nocompflag $bootimg $home/boot-new.img;
+    unset KEEPVBMETAFLAG;
   fi;
   if [ $? != 0 ]; then
     abort "Repacking image failed. Aborting...";

@@ -809,15 +809,16 @@ setup_ak() {
     touch $blockfiles/current;
   fi;
 
-  # target block partition detection enabled by block=boot recovery or auto (from anykernel.sh)
+  # target block partition detection enabled by block=boot recovery init_boot vendor_boot or auto (from anykernel.sh)
   case $block in
      auto|"") block=boot;;
   esac;
   case $block in
-    boot|recovery|vendor_boot)
+    boot|recovery|init_boot|vendor_boot)
       case $block in
-        boot) parttype="ramdisk init_boot boot BOOT LNX android_boot bootimg KERN-A kernel KERNEL";;
-        recovery) parttype="ramdisk_recovery recovery RECOVERY SOS android_recovery";;
+        boot) parttype="boot BOOT LNX android_boot bootimg KERN-A kernel KERNEL";;
+        recovery) parttype="recovery RECOVERY SOS android_recovery";;
+        init_boot) parttype="init_boot";;
         vendor_boot) parttype="vendor_boot";;
       esac;
       for name in $parttype; do

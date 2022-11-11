@@ -485,7 +485,7 @@ do_levelcheck;
 ui_print "Installing...";
 CORE=$($BB grep -oE 'ak.*core.sh' anykernel.sh);
 [ -f tools/$CORE ] || $BB ln -s $AKHOME/tools/ak*-core.sh $AKHOME/tools/$CORE;
-PATH="$AKHOME/bin:$PATH" home=$AKHOME $BB ash anykernel.sh $2;
+PATH="$AKHOME/bin:$PATH" ZIPFILE="$3" home=$AKHOME $BB ash anykernel.sh $2;
 if [ $? != 0 ]; then
   abort;
 fi;

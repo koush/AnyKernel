@@ -786,8 +786,20 @@ setup_ak() {
   rm -f modules/system/lib/modules/placeholder patch/placeholder ramdisk/placeholder;
   rmdir -p modules patch ramdisk 2>/dev/null;
 
-  # automate simple multi-partition setup for boot_img_hdr_v3 + vendor_boot
-  if [ -e "/dev/block/bootdevice/by-name/vendor_boot$slot" -a ! -f vendor_setup ] && [ -f dtb -o -d vendor_ramdisk -o -d vendor_patch ]; then
+  # automate simple multi-partition setup for hdr_v4 boot + init_boot + vendor_kernel_boot (for dtb only until magiskboot supports hdr v4 vendor_ramdisk unpack/repack)
+  if [ -e "/dev/block/bootdevice/by-name/init_boot$slot" -a ! -f init_v4_setup ] && [ -f dtb -o -d vendor_ramdisk -o -d vendor_patch ]; then
+    echo "Setting up for simple automatic init_boot flashing..." >&2;
+    (mkdir boot-files;
+    mv -f Image* boot-files;
+    mkdir init_boot-files;
+    mv -f ramdisk patch init_boot-files;
+    mkdir vendor_kernel_boot-files;
+    mv -f dtb vendor_kernel_boot-files;
+    mv -f vendor_ramdisk vendor_kernel_boot-files/ramdisk;
+    mv -f vendor_patch vendor_kernel_boot-files/patch) 2>/dev/null;
+    touch init_v4_setup;
+  # automate simple multi-partition setup for hdr_v3+ boot + vendor_boot with dtb/dlkm (for v3 only until magiskboot supports hdr v4 vendor_ramdisk unpack/repack)
+  elif [ -e "/dev/block/bootdevice/by-name/vendor_boot$slot" -a ! -f vendor_v3_setup ] && [ -f dtb -o -d vendor_ramdisk -o -d vendor_patch ]; then
     echo "Setting up for simple automatic vendor_boot flashing..." >&2;
     (mkdir boot-files;
     mv -f Image* ramdisk patch boot-files;
@@ -795,7 +807,7 @@ setup_ak() {
     mv -f dtb vendor_boot-files;
     mv -f vendor_ramdisk vendor_boot-files/ramdisk;
     mv -f vendor_patch vendor_boot-files/patch) 2>/dev/null;
-    touch vendor_setup;
+    touch vendor_v3_setup;
   fi;
 
   # allow multi-partition ramdisk modifying configurations (using reset_ak)

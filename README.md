@@ -27,6 +27,7 @@ supported.patchlevels=2019-07 -
 block=/dev/block/platform/omap/omap_hsmmc.0/by-name/boot;
 is_slot_device=0;
 ramdisk_compression=auto;
+patch_vbmeta_flag=auto;
 ```
 
 __do.devicecheck=1__ specified requires at least device.name1 to be present. This should match ro.product.device, ro.build.product, ro.product.vendor.device or ro.vendor.product.device from the build.prop files for your device. There is support for as many device.name# properties as needed. You may remove any empty ones that aren't being used.
@@ -142,9 +143,9 @@ Optionally moving ARM builds to tools/arm and putting x86 builds in tools/x86 wi
 
 1. Place final kernel build product, e.g. Image.gz-dtb or zImage to name a couple, in the zip root (any separate dt, dtb or recovery_dtbo, dtbo and/or vendor_dlkm should also go here for devices that require custom ones, each will fallback to the original if not included)
 
-2. Place any required ramdisk files in /ramdisk (/vendor_ramdisk for simple multi-partition vendor_boot support) and module files in /modules (with the full path like /modules/system/lib/modules)
+2. Place any required ramdisk files in /ramdisk (/vendor_ramdisk for simple multi-partition vendor_boot v3 support) and module files in /modules (with the full path like /modules/system/lib/modules)
 
-3. Place any required patch files (generally partial files which go with AK3 file editing commands) in /patch (/vendor_patch for simple multi-partition vendor_boot support)
+3. Place any required patch files (generally partial files which go with AK3 file editing commands) in /patch (/vendor_patch for simple multi-partition vendor_boot v3 support)
 
 4. Modify the anykernel.sh to add your kernel's name, boot partition location, permissions for any added ramdisk files, and use methods for any required ramdisk modifications (optionally, also place banner and/or version files in the root to have these displayed during flash)
 

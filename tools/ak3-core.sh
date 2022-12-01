@@ -821,17 +821,24 @@ setup_ak() {
     touch $blockfiles/current;
   fi;
 
-  # target block partition detection enabled by block=boot recovery init_boot vendor_boot or auto (from anykernel.sh)
+  # target block partition detection enabled by block=<partition filename> or auto (from anykernel.sh)
   case $block in
-     auto|"") block=boot;;
+    auto|"") block=boot;;
   esac;
   case $block in
-    boot|recovery|init_boot|vendor_boot)
+    /dev/*)
+      if [ "$slot" ] && [ -e "$block$slot" ]; then
+        target=$block$slot;
+      elif [ -e "$block" ]; then
+        target=$block;
+      fi;
+    ;;
+    *)
       case $block in
-        boot) parttype="boot BOOT LNX android_boot bootimg KERN-A kernel KERNEL";;
-        recovery) parttype="recovery RECOVERY SOS android_recovery";;
-        init_boot) parttype="init_boot";;
-        vendor_boot) parttype="vendor_boot";;
+        boot|kernel) parttype="boot BOOT LNX android_boot bootimg KERN-A kernel KERNEL";;
+        recovery|recovery_ramdisk) parttype="recovery RECOVERY SOS android_recovery recovery_ramdisk";;
+        init_boot|ramdisk) parttype="init_boot ramdisk";;
+        *) parttype=$block;;
       esac;
       for name in $parttype; do
         for part in $name$slot $name; do
@@ -843,9 +850,7 @@ setup_ak() {
             else
               abort "Unable to determine mtd $block partition. Aborting...";
             fi;
-            if [ -e /dev/mtd/$mtdname ]; then
-              target=/dev/mtd/$mtdname;
-            fi;
+            [ -e /dev/mtd/$mtdname ] && target=/dev/mtd/$mtdname;
           elif [ -e /dev/block/by-name/$part ]; then
             target=/dev/block/by-name/$part;
           elif [ -e /dev/block/bootdevice/by-name/$part ]; then
@@ -860,18 +865,13 @@ setup_ak() {
           [ "$target" ] && break 2;
         done;
       done;
-      if [ "$target" ]; then
-        block=$(ls $target 2>/dev/null);
-      else
-        abort "Unable to determine $block partition. Aborting...";
-      fi;
-    ;;
-    *)
-      if [ "$slot" ]; then
-        [ -e "$block$slot" ] && block=$block$slot;
-      fi;
     ;;
   esac;
+  if [ "$target" ]; then
+    block=$(ls $target 2>/dev/null);
+  else
+    abort "Unable to determine $block partition. Aborting...";
+  fi;
   if [ ! "$no_block_display" ]; then
     ui_print "$block";
   fi;

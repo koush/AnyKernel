@@ -426,7 +426,7 @@ flash_generic() {
   done;
 
   if [ "$img" -a ! -f ${1}_flashed ]; then
-    for path in /dev/block/bootdevice/by-name /dev/block/mapper; do
+    for path in /dev/block/mapper /dev/block/by-name /dev/block/bootdevice/by-name; do
       for file in $1 $1$slot; do
         if [ -e $path/$file ]; then
           imgblock=$path/$file;
@@ -445,7 +445,7 @@ flash_generic() {
         [ $? == 0 ] || abort "Failed to parse top-level vbmeta. Aborting...";
         if [ "$flags" == "enabled" ]; then
           ui_print " " "dm-verity detected! Patching $avb...";
-          for avbpath in /dev/block/bootdevice/by-name /dev/block/mapper; do
+          for avbpath in /dev/block/mapper /dev/block/by-name /dev/block/bootdevice/by-name; do
             for file in $avb $avb$slot; do
               if [ -e $avbpath/$file ]; then
                 avbblock=$avbpath/$file;
@@ -750,7 +750,7 @@ reset_ak() {
 
 # setup_ak
 setup_ak() {
-  local blockfiles parttype name part mtdmount mtdpart mtdname target;
+  local blockfiles plistboot plistinit plistreco parttype name part mtdmount mtdpart mtdname target;
 
   # slot detection enabled by is_slot_device=1 or auto (from anykernel.sh)
   case $is_slot_device in
@@ -823,9 +823,6 @@ setup_ak() {
 
   # target block partition detection enabled by block=<partition filename> or auto (from anykernel.sh)
   case $block in
-    auto|"") block=boot;;
-  esac;
-  case $block in
     /dev/*)
       if [ "$slot" ] && [ -e "$block$slot" ]; then
         target=$block$slot;
@@ -834,10 +831,15 @@ setup_ak() {
       fi;
     ;;
     *)
+      # maintain brief lists of historic matching partition type names for boot, recovery and init_boot/ramdisk
+      plistboot="boot BOOT LNX android_boot bootimg KERN-A kernel KERNEL";
+      plistreco="recovery RECOVERY SOS android_recovery recovery_ramdisk";
+      plistinit="init_boot ramdisk";
       case $block in
-        boot|kernel) parttype="boot BOOT LNX android_boot bootimg KERN-A kernel KERNEL";;
-        recovery|recovery_ramdisk) parttype="recovery RECOVERY SOS android_recovery recovery_ramdisk";;
-        init_boot|ramdisk) parttype="init_boot ramdisk";;
+        auto) parttype="$plistinit $plistboot";;
+        boot|kernel) parttype=$plistboot;;
+        recovery|recovery_ramdisk) parttype=$plistreco;;
+        init_boot|ramdisk) parttype=$plistinit;;
         *) parttype=$block;;
       esac;
       for name in $parttype; do

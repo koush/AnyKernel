@@ -328,7 +328,7 @@ flash_boot() {
           fi;
           $bin/magiskboot hexpatch kernel 736B69705F696E697472616D667300 77616E745F696E697472616D667300;
           if [ "$(file_getprop $home/anykernel.sh do.systemless)" == 1 ]; then
-            strings kernel | grep -E -m1 'Linux version.*#' > $home/vertmp;
+            strings kernel 2>/dev/null | grep -E -m1 'Linux version.*#' > $home/vertmp;
           fi;
           if [ "$comp" ]; then
             $bin/magiskboot compress=$comp kernel kernel.$comp;
@@ -437,6 +437,9 @@ flash_generic() {
     if [ ! "$imgblock" ]; then
       abort "$1 partition could not be found. Aborting...";
     fi;
+    if [ ! "$no_block_display" ]; then
+      ui_print " " "$imgblock";
+    fi;
     if [ "$path" == "/dev/block/mapper" ]; then
       avb=$($bin/httools_static avb $1);
       [ $? == 0 ] || abort "Failed to parse fstab entry for $1. Aborting...";
@@ -458,14 +461,17 @@ flash_generic() {
           cd $home;
         fi
       fi
+      echo "Removing any existing $1_ak3..." >&2;
       $bin/lptools_static remove $1_ak3;
+      echo "Attempting to create $1_ak3..." >&2;
       if $bin/lptools_static create $1_ak3 $(wc -c < $img); then
+        echo "Replacing $1$slot with $1_ak3..." >&2;
         $bin/lptools_static unmap $1_ak3 || abort "Unmapping $1_ak3 failed. Aborting...";
         $bin/lptools_static map $1_ak3 || abort "Mapping $1_ak3 failed. Aborting...";
         $bin/lptools_static replace $1_ak3 $1$slot || abort "Replacing $1$slot failed. Aborting...";
         imgblock=/dev/block/mapper/$1_ak3;
       else
-        ui_print "Creating $1_ak3 failed. Attempting to resize $1$slot...";
+        echo "Creating $1_ak3 failed. Attempting to resize $1$slot..." >&2;
         $bin/httools_static umount $1 || abort "Unmounting $1 failed. Aborting...";
         if [ -e $path/$1-verity ]; then
           $bin/lptools_static unmap $1-verity || abort "Unmapping $1-verity failed. Aborting...";
@@ -480,9 +486,6 @@ flash_generic() {
     fi;
     isro=$(blockdev --getro $imgblock 2>/dev/null);
     blockdev --setrw $imgblock 2>/dev/null;
-    if [ ! "$no_block_display" ]; then
-      ui_print " " "$imgblock";
-    fi;
     if [ -f "$bin/flash_erase" -a -f "$bin/nandwrite" ]; then
       $bin/flash_erase $imgblock 0 0;
       $bin/nandwrite -p $imgblock $img;

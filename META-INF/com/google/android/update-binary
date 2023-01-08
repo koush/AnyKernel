@@ -88,9 +88,11 @@ mount_apex() {
     eval OLD_${var}=\$$var;
   done;
   $($BB grep -o 'export .* /.*' /system_root/init.environ.rc | $BB sed 's; /;=/;'); unset export;
+  $BB touch /apex/apexak3;
 }
 umount_apex() {
-  [ -d /apex ] || return 1;
+  [ -f /apex/apexak3 ] || return 1;
+  echo "Unmounting apex..." >&2;
   local dest loop var;
   for var in $($BB grep -o 'export .* /.*' /system_root/init.environ.rc 2>/dev/null | $BB awk '{ print $2 }'); do
     if [ "$(eval echo \$OLD_$var)" ]; then
@@ -106,7 +108,7 @@ umount_apex() {
     [ "$loop" ] && $BB losetup -d $loop;
   done;
   [ -f /apex/apextmp ] && $BB umount /apex;
-  $BB rm -rf /apex 2>/dev/null;
+  $BB rm -rf /apex/apexak3 /apex 2>/dev/null;
 }
 mount_all() {
   local byname mount slot system;

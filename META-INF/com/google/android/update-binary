@@ -38,6 +38,7 @@ find_slot() {
     [ "$slot" ] || slot=$($BB grep -o 'androidboot.slot=.*$' /proc/cmdline | $BB cut -d\  -f1 | $BB cut -d= -f2);
     [ "$slot" ] && slot=_$slot;
   fi;
+  [ "$slot" == "normal" ] && unset slot;
   [ "$slot" ] && echo "$slot";
 }
 setup_mountpoint() {

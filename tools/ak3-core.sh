@@ -765,6 +765,7 @@ setup_ak() {
         [ "$slot" ] || slot=$(grep -o 'androidboot.slot=.*$' /proc/cmdline | cut -d\  -f1 | cut -d= -f2);
         [ "$slot" ] && slot=_$slot;
       fi;
+      [ "$slot" == "normal" ] && unset slot;
       if [ "$slot" ]; then
         if [ -d /postinstall/tmp -a ! "$slot_select" ]; then
           slot_select=inactive;

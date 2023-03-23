@@ -25,7 +25,7 @@ ui_print() {
 }
 ui_printfile() {
   local line losrpad;
-  [ -e /twres ] || losrpad='| '; # work around LOS Recovery eating leading whitespace
+  $BOOTMODE || [ -e /twres ] || losrpad='| '; # work around LOS Recovery eating leading whitespace
   while IFS='' read -r line || $BB [[ -n "$line" ]]; do
     ui_print "$losrpad$line";
   done < $1;

@@ -131,7 +131,7 @@ mount_all() {
   fi;
   byname=bootdevice/by-name;
   [ -d /dev/block/$byname ] || byname=$($BB find /dev/block/platform -type d -name by-name 2>/dev/null | $BB head -n1 | $BB cut -d/ -f4-);
-  [ -d /dev/block/mapper ] && byname=mapper;
+  [ -e /dev/block/$byname/super ] && [ -d /dev/block/mapper ] && byname=mapper;
   [ -e /dev/block/$byname/system ] || slot=$(find_slot);
   case $ANDROID_ROOT in
     /system_root) setup_mountpoint /system;;

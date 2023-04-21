@@ -11,6 +11,9 @@ $BOOTMODE || ps -A 2>/dev/null | grep zygote | grep -v grep >/dev/null && BOOTMO
 
 DIR=/sdcard;
 $BOOTMODE || DIR=$(dirname "$ZIPFILE");
+case $DIR in
+  /sideload) DIR=/tmp;;
+esac;
 
 [ -d /postinstall/tmp ] && POSTINSTALL=/postinstall;
 [ "$AKHOME" ] || AKHOME=$POSTINSTALL/tmp/anykernel;
@@ -122,7 +125,7 @@ mount_all() {
   if ! is_mounted /data; then
     $BB mount /data && echo "/data" >&2 && UMOUNT_DATA=1;
   fi;
-  for mount in /vendor /product /system_ext /persist; do
+  for mount in /vendor /product /system_ext /metadata /persist; do
     $BB mount -o ro -t auto $mount 2>/dev/null && echo "$mount (fstab)" >&2;
   done;
   setup_mountpoint $ANDROID_ROOT;
@@ -161,10 +164,12 @@ mount_all() {
     mount_apex;
     $BB mount -o bind /system_root$system /system && echo "/system (bind)" >&2;
   fi;
-  if ! is_mounted /persist && [ -e /dev/block/bootdevice/by-name/persist ]; then
-    setup_mountpoint /persist;
-    $BB mount -o ro -t auto /dev/block/bootdevice/by-name/persist /persist && echo "/persist (direct)" >&2;
-  fi;
+  for mount in /metadata /persist; do
+    if ! is_mounted $mount && [ -e /dev/block/bootdevice/by-name$mount ]; then
+      setup_mountpoint $mount;
+      $BB mount -o ro -t auto /dev/block/bootdevice/by-name$mount $mount && echo "$mount (direct)" >&2;
+    fi;
+  done;
   echo " " >&2;
 }
 umount_all() {
@@ -181,7 +186,7 @@ umount_all() {
   fi;
   umount /vendor; # busybox umount /vendor breaks recovery on some hacky devices
   umount -l /vendor;
-  for mount in /mnt/system /mnt/vendor /product /mnt/product /system_ext /mnt/system_ext /persist; do
+  for mount in /mnt/system /mnt/vendor /product /mnt/product /system_ext /mnt/system_ext /metadata /persist; do
     $BB umount $mount;
     $BB umount -l $mount;
   done;
@@ -243,7 +248,7 @@ restore_env() {
   $BB sleep 1;
   umount_all;
   [ -L /etc_link ] && $BB rm -rf /etc/*;
-  (for dir in /etc /apex /system_root /system /vendor /product /system_ext /persist; do
+  (for dir in /etc /apex /system_root /system /vendor /product /system_ext /metadata /persist; do
     if [ -L "${dir}_link" ]; then
       rmdir $dir;
       $BB mv -f ${dir}_link $dir;
@@ -252,13 +257,18 @@ restore_env() {
   $BB umount -l /dev/random) 2>/dev/null;
 }
 debugging() {
+  local debug log path;
   case $($BB basename "$ZIPFILE" .zip) in
-    *-debugging)
-      ui_print " " "Creating debugging archive in $DIR...";
-      [ -f /tmp/recovery.log ] && local log=/tmp/recovery.log;
-      $BB tar -czf "$DIR/anykernel3-$(date +%Y-%m-%d_%H%M%S)-debug.tgz" $AKHOME $log;
-    ;;
+    *-debugging) debug=1;;
   esac;
+  for path in /tmp /cache /metadata /persist; do
+    [ -f $path/.ak3-debugging ] && debug=1;
+  done;
+  if [ "$debug" ]; then
+    ui_print " " "Creating debugging archive in $DIR...";
+    [ -f /tmp/recovery.log ] && log=/tmp/recovery.log;
+    PATH="$AKHOME/bin:$PATH" $BB tar -czf "$DIR/anykernel3-$(date +%Y-%m-%d_%H%M%S)-debug.tgz" $AKHOME $log;
+  fi;
 }
 cleanup() {
   cd $(dirname $AKHOME);

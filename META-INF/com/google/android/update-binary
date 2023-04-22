@@ -119,23 +119,23 @@ umount_apex() {
 mount_all() {
   local byname mount slot system;
   echo "Mounting..." >&2;
-  if ! is_mounted /cache; then
-    $BB mount /cache 2>/dev/null && echo "/cache" >&2 && UMOUNT_CACHE=1;
-  fi;
-  if ! is_mounted /data; then
-    $BB mount /data && echo "/data" >&2 && UMOUNT_DATA=1;
-  fi;
-  for mount in /vendor /product /system_ext /metadata /persist; do
-    $BB mount -o ro -t auto $mount 2>/dev/null && echo "$mount (fstab)" >&2;
+  byname=bootdevice/by-name;
+  [ -d /dev/block/$byname ] || byname=$($BB find /dev/block/platform -type d -name by-name 2>/dev/null | $BB head -n1 | $BB cut -d/ -f4-);
+  [ -e /dev/block/$byname/super -a -d /dev/block/mapper ] && byname=mapper;
+  [ -e /dev/block/$byname/system ] || slot=$(find_slot);
+  for mount in /cache /data /metadata /persist; do
+    if ! is_mounted $mount; then
+      $BB mount $mount 2>/dev/null && echo "$mount (fstab)" >&2 && UMOUNTLIST="$UMOUNTLIST $mount";
+      if [ $? != 0 -a -e /dev/block/$byname$mount ]; then
+        setup_mountpoint $mount;
+        $BB mount -o ro -t auto /dev/block/$byname$mount $mount && echo "$mount (direct)" >&2 && UMOUNTLIST="$UMOUNTLIST $mount";
+      fi;
+    fi;
   done;
   setup_mountpoint $ANDROID_ROOT;
   if ! is_mounted $ANDROID_ROOT; then
     $BB mount -o ro -t auto $ANDROID_ROOT 2>/dev/null && echo "$ANDROID_ROOT (\$ANDROID_ROOT)" >&2;
   fi;
-  byname=bootdevice/by-name;
-  [ -d /dev/block/$byname ] || byname=$($BB find /dev/block/platform -type d -name by-name 2>/dev/null | $BB head -n1 | $BB cut -d/ -f4-);
-  [ -e /dev/block/$byname/super ] && [ -d /dev/block/mapper ] && byname=mapper;
-  [ -e /dev/block/$byname/system ] || slot=$(find_slot);
   case $ANDROID_ROOT in
     /system_root) setup_mountpoint /system;;
     /system)
@@ -155,7 +155,8 @@ mount_all() {
   esac;
   [ -f /system_root/system/build.prop ] && system=/system;
   for mount in /vendor /product /system_ext; do
-    if ! is_mounted $mount && [ -L /system$mount -o -L /system_root$system$mount ]; then
+    $BB mount -o ro -t auto $mount 2>/dev/null && echo "$mount (fstab)" >&2;
+    if [ $? != 0 ] && [ -L /system$mount -o -L /system_root$system$mount ]; then
       setup_mountpoint $mount;
       $BB mount -o ro -t auto /dev/block/$byname$mount$slot $mount && echo "$mount (direct)" >&2;
     fi;
@@ -164,12 +165,6 @@ mount_all() {
     mount_apex;
     $BB mount -o bind /system_root$system /system && echo "/system (bind)" >&2;
   fi;
-  for mount in /metadata /persist; do
-    if ! is_mounted $mount && [ -e /dev/block/bootdevice/by-name$mount ]; then
-      setup_mountpoint $mount;
-      $BB mount -o ro -t auto /dev/block/bootdevice/by-name$mount $mount && echo "$mount (direct)" >&2;
-    fi;
-  done;
   echo " " >&2;
 }
 umount_all() {
@@ -186,18 +181,10 @@ umount_all() {
   fi;
   umount /vendor; # busybox umount /vendor breaks recovery on some hacky devices
   umount -l /vendor;
-  for mount in /mnt/system /mnt/vendor /product /mnt/product /system_ext /mnt/system_ext /metadata /persist; do
+  for mount in /mnt/system /mnt/vendor /product /mnt/product /system_ext /mnt/system_ext $UMOUNTLIST; do
     $BB umount $mount;
     $BB umount -l $mount;
-  done;
-  if [ "$UMOUNT_DATA" ]; then
-    $BB umount /data;
-    $BB umount -l /data;
-  fi;
-  if [ "$UMOUNT_CACHE" ]; then
-    $BB umount /cache;
-    $BB umount -l /cache;
-  fi) 2>/dev/null;
+  done) 2>/dev/null;
 }
 setup_env() {
   $BOOTMODE && return 1;

@@ -210,11 +210,7 @@ setup_env() {
           fi;
         done;
       done;
-      if [ "$propval" ]; then
-        echo "$propval";
-      else
-        echo "";
-      fi;
+      echo "$propval";
     }
   elif [ ! "$(getprop ro.build.type 2>/dev/null)" ]; then
     getprop() {

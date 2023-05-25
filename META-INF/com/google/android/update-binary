@@ -82,6 +82,10 @@ mount_apex() {
           mount -t ext4 -o ro,loop,noatime $loop $dest && echo "$dest (loop)" >&2;
           if [ $? != 0 ]; then
             losetup -d $loop 2>/dev/null;
+            if [ $num -eq 64 -a $(losetup -f) == "/dev/block/loop0" ]; then
+              echo "Aborting apex mounts due to broken environment..." >&2;
+              break;
+            fi;
           fi;
         fi;
       ;;

@@ -384,7 +384,7 @@ flash_boot() {
       *recovery*|*SOS*) avbtype=recovery;;
       *) avbtype=boot;;
     esac;
-    if [ "$(/system/bin/dalvikvm -Xnoimage-dex2oat -cp $bin/boot_signer-dexed.jar com.android.verity.BootSignature -verify boot.img 2>&1 | grep VALID)" ]; then
+    if [ -f /system/bin/dalvikvm ] && [ "$(/system/bin/dalvikvm -Xnoimage-dex2oat -cp $bin/boot_signer-dexed.jar com.android.verity.BootSignature -verify boot.img 2>&1 | grep VALID)" ]; then
       echo "Signing with AVBv1..." >&2;
       /system/bin/dalvikvm -Xnoimage-dex2oat -cp $bin/boot_signer-dexed.jar com.android.verity.BootSignature /$avbtype boot-new.img $pk8 $cert boot-new-signed.img;
     fi;

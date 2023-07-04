@@ -345,6 +345,28 @@ flash_boot() {
           for fdt in dtb extra kernel_dtb recovery_dtbo; do
             [ -f $fdt ] && $bin/magiskboot dtb $fdt patch; # remove dtb verity/avb
           done;
+        elif [ -d /data/adb/ksu -a -f /data/adb/ksu/modules.img ] && [ "$(file_getprop $home/anykernel.sh do.systemless)" == 1 ]; then
+          ui_print " " "KernelSU detected! Setting up for kernel helper module...";
+          comp=$($bin/magiskboot decompress kernel 2>&1 | grep -vE 'raw|zimage' | sed -n 's;.*\[\(.*\)\];\1;p');
+          ($bin/magiskboot split $kernel || $bin/magiskboot decompress $kernel kernel) 2>/dev/null;
+          if [ $? != 0 -a "$comp" ] && $comp --help 2>/dev/null; then
+            echo "Attempting kernel unpack with busybox $comp..." >&2;
+            $comp -dc $kernel > kernel;
+          fi;
+          if strings kernel 2>/dev/null | grep -q -E '^/data/adb/ksud$'; then
+            touch $home/kernelsu_patched;
+            strings kernel 2>/dev/null | grep -E -m1 'Linux version.*#' > $home/vertmp;
+          else
+            ui_print " " "Warning: No KernelSU support detected in kernel!";
+          fi;
+          if [ "$comp" ]; then
+            $bin/magiskboot compress=$comp kernel kernel.$comp;
+            if [ $? != 0 ] && $comp --help 2>/dev/null; then
+              echo "Attempting kernel repack with busybox $comp..." >&2;
+              $comp -9c kernel > kernel.$comp;
+            fi;
+            mv -f kernel.$comp kernel;
+          fi;
         else
           case $kernel in
             *-dtb) rm -f kernel_dtb;;

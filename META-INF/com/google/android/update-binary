@@ -393,8 +393,8 @@ do_modules() {
   local block modcon moddir modtarget module slot umask;
   if [ "$(file_getprop anykernel.sh do.systemless)" == 1 ]; then
     cd $AKHOME/modules;
-    ui_print " " "Creating kernel helper Magisk module...";
-    if [ -d /data/adb/magisk -a -f $AKHOME/magisk_patched ]; then
+    ui_print " " "Creating kernel helper systemless module...";
+    if [ -d /data/adb/magisk -a -f $AKHOME/magisk_patched ] || [ -d /data/adb/ksu -a -f $AKHOME/kernelsu_patched ]; then
       umask=$(umask);
       umask 022;
       moddir=/data/adb/modules/ak3-helper;
@@ -408,7 +408,7 @@ do_modules() {
       cp -f $AKHOME/vertmp $moddir/version;
       umask $umask;
     else
-      ui_print "Magisk installation not found. Skipped!";
+      ui_print "Magisk/KernelSU installation not found. Skipped!";
     fi;
   else
     cd $AKHOME/modules;

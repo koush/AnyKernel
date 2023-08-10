@@ -2,7 +2,7 @@
 ## osm0sis @ xda-developers
 
 ### AnyKernel setup
-# begin properties
+# global properties
 properties() { '
 kernel.string=ExampleKernel by osm0sis @ xda-developers
 do.devicecheck=1
@@ -18,6 +18,7 @@ device.name5=
 supported.versions=
 supported.patchlevels=
 '; } # end properties
+
 
 ### AnyKernel install
 ## boot files attributes

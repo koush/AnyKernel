@@ -81,13 +81,7 @@ write_boot; # use flash_boot to skip ramdisk repack, e.g. for devices with init_
 ## end init_boot install
 
 
-## vendor_boot files attributes
-#vendor_boot_attributes() {
-#set_perm_recursive 0 0 755 644 $ramdisk/*;
-#set_perm_recursive 0 0 750 750 $ramdisk/init* $ramdisk/sbin;
-#} # end attributes
-
-# vendor_kernel_boot shell variables
+## vendor_kernel_boot shell variables
 #block=vendor_kernel_boot;
 #is_slot_device=1;
 #ramdisk_compression=auto;
@@ -103,7 +97,13 @@ write_boot; # use flash_boot to skip ramdisk repack, e.g. for devices with init_
 ## end vendor_kernel_boot install
 
 
-## vendor_boot shell variables
+## vendor_boot files attributes
+#vendor_boot_attributes() {
+#set_perm_recursive 0 0 755 644 $ramdisk/*;
+#set_perm_recursive 0 0 750 750 $ramdisk/init* $ramdisk/sbin;
+#} # end attributes
+
+# vendor_boot shell variables
 #block=vendor_boot;
 #is_slot_device=1;
 #ramdisk_compression=auto;

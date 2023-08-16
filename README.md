@@ -58,6 +58,8 @@ __supported.patchlevels=__ will match against ro.build.version.security_patch fr
 
 `no_block_display=1` may be added to disable output of the detected final used partition+slot path for zips which choose to include their own custom output instead.
 
+`no_magisk_check=1` may be added to disable detection of Magisk and related kernel/dtb repatching for special zips which don't require that.
+
 ## // Command Methods ##
 ```
 ui_print "<text>" [...]

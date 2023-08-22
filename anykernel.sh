@@ -17,6 +17,7 @@ device.name4=tuna
 device.name5=
 supported.versions=
 supported.patchlevels=
+supported.vendorpatchlevels=
 '; } # end properties
 
 

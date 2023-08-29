@@ -386,12 +386,14 @@ flash_boot() {
       *) export PATCHVBMETAFLAG=false;;
     esac;
     $bin/magiskboot repack $nocompflag $bootimg $home/boot-new.img;
-    unset PATCHVBMETAFLAG;
   fi;
   if [ $? != 0 ]; then
     abort "Repacking image failed. Aborting...";
   fi;
-  [ -f .magisk ] && touch $home/magisk_patched;
+  if [ -f .magisk ]; then
+    touch $home/magisk_patched;
+    unset PATCHVBMETAFLAG;
+  fi;
 
   cd $home;
   if [ -f "$bin/futility" -a -d "$bin/chromeos" ]; then

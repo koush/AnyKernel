@@ -359,6 +359,7 @@ flash_boot() {
           if grep -q -E '^/data/adb/ksud$' stringstmp; then
             touch $home/kernelsu_patched;
             grep -E -m1 'Linux version.*#' stringstmp > $home/vertmp;
+            [ -d $ramdisk/overlay.d ] && ui_print " " "Warning: overlay.d detected in ramdisk but not currently supported by KernelSU!";
           else
             ui_print " " "Warning: No KernelSU support detected in kernel!";
           fi;

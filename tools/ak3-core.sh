@@ -404,16 +404,23 @@ flash_boot() {
     fi;
     [ $? != 0 ] && signfail=1;
   fi;
-  if [ -f "$bin/boot_signer-dexed.jar" -a -d "$bin/avb" ]; then
+  if [ -d "$bin/avb" ]; then
     pk8=$(ls $bin/avb/*.pk8);
     cert=$(ls $bin/avb/*.x509.*);
     case $block in
-      *recovery*|*SOS*) avbtype=recovery;;
+      *recovery*|*RECOVERY*|*SOS*) avbtype=recovery;;
       *) avbtype=boot;;
     esac;
-    if [ -f /system/bin/dalvikvm ] && [ "$(/system/bin/dalvikvm -Xnoimage-dex2oat -cp $bin/boot_signer-dexed.jar com.android.verity.BootSignature -verify boot.img 2>&1 | grep VALID)" ]; then
-      echo "Signing with AVBv1..." >&2;
-      /system/bin/dalvikvm -Xnoimage-dex2oat -cp $bin/boot_signer-dexed.jar com.android.verity.BootSignature /$avbtype boot-new.img $pk8 $cert boot-new-signed.img;
+    if [ -f "$bin/boot_signer-dexed.jar" ]; then
+      if [ -f /system/bin/dalvikvm ] && [ "$(/system/bin/dalvikvm -Xnoimage-dex2oat -cp $bin/boot_signer-dexed.jar com.android.verity.BootSignature -verify boot.img 2>&1 | grep VALID)" ]; then
+        echo "Signing with AVBv1 /$avbtype..." >&2;
+        /system/bin/dalvikvm -Xnoimage-dex2oat -cp $bin/boot_signer-dexed.jar com.android.verity.BootSignature /$avbtype boot-new.img $pk8 $cert boot-new-signed.img;
+      fi;
+    else
+      if $bin/magiskboot verify boot.img; then
+        echo "Signing with AVBv1 /$avbtype..." >&2;
+        $bin/magiskboot sign /$avbtype boot-new.img $cert $pk8;
+      fi;
     fi;
   fi;
   if [ $? != 0 -o "$signfail" ]; then

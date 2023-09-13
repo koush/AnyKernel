@@ -430,6 +430,10 @@ do_modules() {
       # this may be the initial KernelSU install or first module so setup as needed
       if [ -f $AKHOME/kernelsu_patched ]; then
         umask 077;
+        if [ ! -f /data/adb/ksud ]; then
+          cp -f /data/app/*/me.weishu.kernelsu*/lib/*/libksud.so /data/adb/ksud;
+          chmod 755 /data/adb/ksud;
+        fi;
         if [ ! -d /data/adb/modules ]; then
           mkdir -p /data/adb/modules;
           chmod 777 /data/adb/modules;

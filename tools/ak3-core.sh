@@ -127,7 +127,7 @@ split_boot() {
   elif [ -f "$bin/rkcrc" ]; then
     dd bs=4096 skip=8 iflag=skip_bytes conv=notrunc if=$bootimg of=ramdisk.cpio.gz;
   else
-    $bin/magiskboot unpack -h $bootimg;
+    (set -o pipefail; $bin/magiskboot unpack -h $bootimg 2>&1 | tee infotmp >&2);
     case $? in
       1) dumpfail=1;;
       2) touch chromeos;;
@@ -193,6 +193,10 @@ repack_ramdisk() {
   local comp packfail mtktype;
 
   cd $home;
+  if [ "$ramdisk_compression" != "auto" ] && [ "$(grep HEADER_VER $split_img/infotmp | sed -n 's;.*\[\(.*\)\];\1;p')" -gt 3 ]; then
+    ui_print " " "Warning: Only lz4-l ramdisk compression is allowed with hdr v4+ images. Resetting to auto...";
+    ramdisk_compression=auto;
+  fi;
   case $ramdisk_compression in
     auto|"") comp=$(ls $split_img/ramdisk.cpio.* 2>/dev/null | grep -v 'mtk' | rev | cut -d. -f1 | rev);;
     none|cpio) comp="";;

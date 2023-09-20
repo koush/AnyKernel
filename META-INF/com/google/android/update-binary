@@ -416,7 +416,7 @@ EOF
 }
 do_modules() {
   [ "$(file_getprop anykernel.sh do.modules)" == 1 ] || return 1;
-  local block modcon moddir modtarget module slot umask umountksu;
+  local block modcon moddir modtarget module mount slot umask umountksu;
   if [ "$(file_getprop anykernel.sh do.systemless)" == 1 ]; then
     if [ ! -d /data/adb -o ! -d /data/data/android ]; then
       ui_print " " "Warning: No /data access for kernel helper systemless module!";
@@ -483,9 +483,11 @@ do_modules() {
       done;
     fi;
     if [ ! -d /postinstall/tmp ]; then
-      mount -o rw,remount -t auto /system;
-      (mount -o rw,remount -t auto /vendor;
-      mount -o rw,remount -t auto /product) 2>/dev/null;
+      for mount in /system /vendor /product; do
+        if is_mounted $mount; then
+          mount -o rw,remount -t auto $mount && echo "$mount (rw)" >&2;
+        fi;
+      done;
     fi;
     for module in $(find . -name '*.ko'); do
       modtarget=$POSTINSTALL$(echo $module | cut -c2-);
@@ -497,7 +499,7 @@ do_modules() {
         esac;
       fi;
       if is_mounted $modtarget; then
-        mount -o rw,remount -t auto $modtarget;
+        mount -o rw,remount -t auto $modtarget && echo "$modtarget (rw)" >&2;
       fi;
       mkdir -p $(dirname $modtarget);
       cp -rLf $module $modtarget;
@@ -507,13 +509,15 @@ do_modules() {
         /system/bin/chcon "u:object_r:${modcon}_file:s0" $modtarget;
       fi;
       if is_mounted $modtarget; then
-        mount -o ro,remount -t auto $modtarget;
+        mount -o ro,remount -t auto $modtarget && echo "$modtarget (ro)" >&2;
       fi;
     done;
     if [ ! -d /postinstall/tmp ]; then
-      mount -o ro,remount -t auto /system;
-      (mount -o ro,remount -t auto /vendor;
-      mount -o ro,remount -t auto /product) 2>/dev/null;
+      for mount in /system /vendor /product; do
+        if is_mounted $mount; then
+          mount -o ro,remount -t auto $mount && echo "$mount (ro)" >&2;
+        fi;
+      done;
     fi;
   fi;
   cd $AKHOME;
